@@ -12,6 +12,8 @@ A multilingual portfolio for MINJA: visual direction, music visuals, live VJ and
 - Real-time WebGL refraction and textured glass, animated frosted panes, layered sharp/blurred images, page transitions, scroll reveals and parallax
 - Filterable project and 49-image indexes, drag-to-scroll galleries and a keyboard-accessible full-resolution image lightbox
 - Mobile navigation, persistent language selection, reduced-motion support and an explicit motion switch
+- Seven native-scroll chapters: image expansion, kinetic typography, split-mask scene changes, a horizontal project rail, glass takeover, photo constellation and closing invitation
+- Five-language AJAX inquiry form with required fields, email validation, honeypot, duplicate-submit prevention and recoverable error states
 - Xiaohongshu and Douyin contact links
 
 ## Local development
@@ -28,12 +30,15 @@ Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
 
 - `content.js`: five-language copy, project data and contact links
 - `app.js`: pages and interaction logic
-- `style.css`: typography, layout, motion and responsive styles
+- `style.css`: shared typography and layout
+- `story.js` / `story.css`: native-scroll timeline and chapter compositions
+- `inquiry.js` / `inquiry.css`: contact form and submission feedback
+- `contact-config.js`: public FormSubmit endpoint and production form URL
 - `assets/`: responsive artwork generated from the supplied high-resolution originals
 - Each route includes its own `index.html`, so GitHub Pages supports direct links and refreshes.
 
 Publish the `main` branch, `/ (root)`, in Settings → Pages. `.nojekyll` keeps this a plain static site.
 
-Typography uses Google Fonts (Bodoni Moda and DM Sans), with system fallbacks. All other assets are hosted in the repository. `media.js` records the source and served dimensions for each artwork. No PDF screenshots or PDF-cropped artwork is used. The existing brand mark is retained as a scalable vector. No analytics or server-side data collection.
+Typography uses Google Fonts (Bodoni Moda and DM Sans), with system fallbacks. All other assets are hosted in the repository. `media.js` records the source and served dimensions for each artwork. No PDF screenshots or PDF-cropped artwork is used. The existing brand mark is retained as a scalable vector. No analytics. Contact inquiries are sent to FormSubmit for email delivery; the site has no private SMTP credentials. The recipient must complete the one-time FormSubmit email activation before delivery starts. Change the public endpoint in `contact-config.js` to change recipients. Submission success confirms service acceptance, not inbox receipt.
 
 All artwork © MINJA. No artwork reuse license is granted by this repository.
