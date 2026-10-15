@@ -1,4 +1,4 @@
-import {initPanorama} from './panorama.js?v=1.9.0';
+import {initPanorama} from './panorama.js?v=1.9.1';
 import {initHeroOptics} from './hero-optics.js?v=1.7.2';
 import {icon} from './icons.js?v=1.6.1';
 import {logoSvg} from './logo-geometry.js?v=1.3.1';
