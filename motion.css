@@ -183,3 +183,24 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .archive .work-card .work-image{width:100%;aspect-ratio:auto}
 .archive-title{pointer-events:auto}
 @media(max-width:800px){.archive .filter{min-height:32px}}
+
+/* One drawn icon language across desktop and mobile, independent of system fonts. */
+.ui-icon{display:inline-block;width:1em;height:1em;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:square;stroke-linejoin:miter;vertical-align:-.12em;pointer-events:none}
+.direction-mark{display:inline-flex;align-items:center;justify-content:center;line-height:1}
+#language-toggle>span{display:inline-flex;align-items:center;justify-content:center}
+#language-toggle .ui-icon{width:12px;height:12px}
+.lang-menu button>span{display:inline-flex;align-items:center}
+.lang-menu .ui-icon{width:13px;height:13px}
+.image-plus .ui-icon{width:19px;height:19px}
+.menu-line>i{display:inline-flex;align-items:center;justify-content:center}
+.portal-navigation button{display:grid;place-items:center}
+.portal-navigation .ui-icon{width:18px;height:18px}
+.archive-image-open .ui-icon{display:block}
+.lightbox-close .ui-icon{width:21px;height:21px}
+.lightbox-prev .ui-icon,.lightbox-next .ui-icon{width:27px;height:27px}
+.inquiry-social a{display:inline-flex;gap:12px;align-items:center}
+.inquiry-social .ui-icon{width:14px;height:14px}
+.inquiry-submit i{display:inline-flex;align-items:center;justify-content:center}
+.inquiry-submit[aria-busy=true] .ui-icon{display:none}
+.partner-ticker-track .partner-divider{display:inline-block;width:1px;height:.55em;margin:0 3vw;vertical-align:.06em;background:#899872;transform:rotate(20deg)}
+@media(max-width:700px){.partner-ticker-track .partner-divider{margin:0 5vw}.image-plus .ui-icon{width:16px;height:16px}}
