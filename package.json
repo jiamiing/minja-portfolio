@@ -1,11 +1,11 @@
 {
   "name": "minja-portfolio",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "private": true,
   "description": "MINJA \u2014 visual direction, music visuals and generative film",
   "scripts": {
     "dev": "python3 -m http.server 4173",
-    "check": "node --check app.js && node --check content.js && node --check media.js && node --check story.js && node --check inquiry.js && node --check contact-config.js && node --check logo-geometry.js && node --check identity.js && node --check motion.js && node --check archive.js && node --check icons.js"
+    "check": "node --check app.js && node --check content.js && node --check media.js && node --check story.js && node --check inquiry.js && node --check contact-config.js && node --check logo-geometry.js && node --check identity.js && node --check motion.js && node --check archive.js && node --check icons.js && node --check hero-optics.js"
   },
   "type": "module"
 }
