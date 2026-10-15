@@ -1,4 +1,4 @@
-import {logoPath,logoBox} from './logo-geometry.js?v=1.3.0';
+import {logoPath,logoBox} from './logo-geometry.js?v=1.3.1';
 
 // The same vector contours draw both the continuous ink and every particle target.
 export function initIdentity({motion,on}){
@@ -28,7 +28,7 @@ export function initIdentity({motion,on}){
    const opacity=Math.max(blast,local,Math.min(1,displaced/14));if(opacity<.015)continue;
    const size=p.r*(.5+opacity*.5);if(p.seed>.92&&(force>.15||blast>.3)){accents.push([p.x,p.y,size]);continue}ctx.rect(p.x-size,p.y-size,size*2,size*2);
   }ctx.fill();ctx.fillStyle='#a6c743';ctx.beginPath();for(const [x,y,r]of accents){ctx.moveTo(x+r,y);ctx.arc(x,y,r,0,Math.PI*2)}ctx.fill();
-  host.dataset.identityState=blast>.03||brush>.1||movement>points.length?'dispersing':'assembled';
+  host.dataset.identityState=blast>.001||brush>.002||movement>points.length*.04?'dispersing':'assembled';
   if(hover||blast>.001||brush>.002||movement>points.length*.04)schedule();else{ctx.clearRect(0,0,w,h);drawBase();host.dataset.identityState='assembled'}
  }
  on(host,'pointermove',e=>{if(!motion||e.pointerType==='touch')return;const r=host.getBoundingClientRect();px=e.clientX-r.left;py=e.clientY-r.top;hover=true;schedule()});

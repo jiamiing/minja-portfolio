@@ -26,3 +26,4 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .menu-toggle>span,.menu-toggle[aria-expanded=true]>span{top:auto;left:auto;right:auto}.menu-preview [data-menu-frame="0"].active img{transform:scale(1.08)}
 .detail-title{mix-blend-mode:normal;color:#f2f1ec}.detail-title h1{text-shadow:0 2px 30px #0005}.detail-title>.micro{color:var(--detail-meta,#171b17)}.detail-cover:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,transparent 55%,#070d133b);pointer-events:none}.detail-back,.detail-bottom{mix-blend-mode:normal;color:var(--detail-bottom,#171b17)}
 .motion-defs{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}.story-motion .opening-type{filter:url(#hero-ink-warp)}.motion-off .opening-type{filter:none}
+.opening-scroll span{animation:none}.opening-scroll>span:not(.ink-run):not(.sr-only){animation:scroll-nudge 1.8s ease-in-out infinite}

@@ -21,7 +21,7 @@ export function initLetterFields({motion,on,targets}){
  const roots=targets.filter(Boolean),fields=[];let alive=true,raf=0,px=-10000,py=-10000,pointer=false,last=0;
  const fine=matchMedia('(pointer:fine)').matches;
  for(const root of roots){splitInk(root);const field={root,glyphs:[],visible:false,entered:false};fields.push(field)}
- function measure(){if(!alive)return;for(const f of fields){const rootRect=f.root.getBoundingClientRect();for(const g of f.glyphs){g.el.getAnimations().forEach(a=>a.finish());g.el.style.transform='none'}f.glyphs=[...f.root.querySelectorAll('.ink-glyph')].map(el=>{const r=el.getBoundingClientRect();return{el,tx:r.left+r.width/2-rootRect.left,ty:r.top+r.height/2-rootRect.top,x:0,y:0,vx:0,vy:0,angle:0}});f.width=rootRect.width;}}
+ function measure(){if(!alive)return;for(const f of fields){const rootRect=f.root.getBoundingClientRect();for(const g of f.glyphs){g.el.getAnimations().filter(a=>Number.isFinite(a.effect?.getComputedTiming().endTime)).forEach(a=>a.finish());g.el.style.transform='none'}f.glyphs=[...f.root.querySelectorAll('.ink-glyph')].map(el=>{const r=el.getBoundingClientRect();return{el,tx:r.left+r.width/2-rootRect.left,ty:r.top+r.height/2-rootRect.top,x:0,y:0,vx:0,vy:0,angle:0}});f.width=rootRect.width;}}
  function schedule(){if(alive&&!raf)raf=requestAnimationFrame(tick)}
  function tick(now){raf=0;if(!alive||document.hidden)return;const dt=Math.min(2,(now-last)/16.67||1);last=now;let moving=false;
   for(const f of fields){if(!f.visible)continue;const rect=f.root.getBoundingClientRect(),radius=clamp(innerWidth*.11,80,170),scale=rect.width/(f.width||rect.width);
