@@ -46,7 +46,7 @@ export function initPanorama({motion,on}) {
    const fragment=`precision highp float;varying vec2 uv;uniform sampler2D scene;uniform float yaw;uniform float aspect;
     vec3 sampleGarden(vec2 p){float x=fract(p.x)*.9;vec3 col=texture2D(scene,vec2(x,p.y)).rgb;
      if(x<.1)col=mix(texture2D(scene,vec2(x+.9,p.y)).rgb,col,smoothstep(0.,.1,x));return col;}
-    void main(){float focal=.65;float x=uv.x*aspect*focal;float theta=atan(x);float u=.5555556+(yaw+theta)/6.2831853;float v=.5-uv.y*.44/sqrt(1.+x*x);gl_FragColor=vec4(sampleGarden(vec2(u,clamp(v,.01,.99))),1.);}`;
+    void main(){float x=uv.x*aspect*.35;float window=min(.30,aspect*.135);float across=atan(x)/atan(aspect*.35)*window;float u=.5555556+yaw/6.2831853+across;float v=.5-uv.y*.47/sqrt(1.+x*x);gl_FragColor=vec4(sampleGarden(vec2(u,clamp(v,.01,.99))),1.);}`;
    function compile(type,source){const s=gl.createShader(type);shaders.push(s);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error('Garden shader compilation');return s;}
    program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Garden shader link');gl.useProgram(program);
    buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const pos=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);

@@ -209,7 +209,7 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .garden-surface{position:absolute;inset:0;cursor:grab;touch-action:pan-y;outline:none;user-select:none;-webkit-user-select:none}
 .garden-surface:focus-visible{outline:2px solid #f2f1ec;outline-offset:-7px}
 .garden-surface canvas,.garden-fallback{position:absolute;inset:0;width:100%;height:100%;display:block}
-.garden-surface canvas{opacity:0;transition:opacity .7s ease}
+.garden-surface canvas{opacity:0}
 .garden-surface canvas[hidden]{display:none}
 .is-webgl .garden-surface canvas{opacity:1}
 .garden-fallback{background-image:url('./assets/garden-panorama.webp?v=1.8.0');background-size:auto 100%;background-position:50% 50%;background-repeat:repeat-x}
