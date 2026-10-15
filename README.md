@@ -10,6 +10,7 @@ A multilingual portfolio for MINJA: visual direction, music visuals, live VJ and
 - English, Japanese, Simplified Chinese, Traditional Chinese and Korean
 - 49 original artworks supplied by MINJA, optimized directly from the source PNG files as responsive WebP images
 - Real-time WebGL refraction and textured glass, animated frosted panes, layered sharp/blurred images, page transitions, scroll reveals and parallax
+- Selected Work exhibition: layered artwork introduction, asymmetric project layouts, sticky category controls, pointer-revealed companion frames, scroll parallax and shared-image project transitions
 - Compact footer glass screen: nine refracted image strips from the original portfolio, pointer distortion, press-to-assemble, three artwork scenes, keyboard controls and reduced-motion support
 - Elastic glyph interaction and liquid displacement across hero type, a magnetic navigation indicator, rolling labels and an image-driven full-screen menu
 - Six-image practice choreography, immersive project entrances and scroll-cut image sequences, a visual collaboration ledger, portrait shutters and scroll-lit multilingual reading
@@ -36,6 +37,7 @@ Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
 - `style.css`: shared typography and layout
 - `story.js` / `story.css`: native-scroll timeline and chapter compositions
 - `motion.js` / `motion.css`: glyph physics, navigation and page-specific timelines
+- `archive.js`: exhibition layout transitions and archive interactions
 - `logo-geometry.js` / `identity.js`: editable vector paths and the artwork-based glass screen renderer
 - `inquiry.js` / `inquiry.css`: contact form and submission feedback
 - `contact-config.js`: public FormSubmit endpoint and production form URL
