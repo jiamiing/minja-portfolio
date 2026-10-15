@@ -213,6 +213,14 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .garden-surface canvas{opacity:0;pointer-events:none}
 .garden-surface canvas[hidden]{display:none}
 .is-webgl .garden-surface canvas{opacity:1}
-.garden-fallback{background-image:url('./assets/garden-panorama.webp?v=1.8.0');background-size:auto 100%;background-position:50% 50%;background-repeat:repeat-x;will-change:transform}
+.garden-fallback{background-size:auto 100%;background-position:50% 50%;background-repeat:repeat-x;will-change:transform}
 .garden-pin:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#1722390c,transparent 22%,transparent 80%,#0c151d12)}
 @media(max-width:700px){.personal-note .garden-viewer,.personal-note .garden-viewer.is-scroll-scene{height:50svh;min-height:350px;max-height:480px}}
+/* Keep image interaction in the page, with editable exceptions for inquiries. */
+.content-protected body{-webkit-user-select:none;user-select:none}
+.content-protected img,.content-protected canvas,.content-protected svg{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none}
+.content-protected a{-webkit-touch-callout:none}
+.content-protected input,.content-protected textarea,.content-protected [contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+img[data-full-src]{color:transparent}
+
+#lightbox img[data-full-src]{width:min(90vw,calc(82svh * var(--image-ratio,1.78)));height:auto;object-fit:contain}

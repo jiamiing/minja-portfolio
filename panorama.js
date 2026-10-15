@@ -1,3 +1,4 @@
+import {progressiveTexture} from './images.js?v=2.0.0';
 const TAU=Math.PI*2;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x);};
@@ -7,8 +8,8 @@ export function initPanorama({motion,on}){
  const stage=document.querySelector('.garden-viewer');if(!stage)return ()=>{};
  const pin=stage.querySelector('.garden-pin'),surface=stage.querySelector('.garden-surface'),canvas=stage.querySelector('canvas'),fallback=stage.querySelector('.garden-fallback');
  stage.classList.toggle('is-scroll-scene',motion);
- let alive=true,visible=false,ready=false,raf=0,last=0,elapsed=0,progress=0,yaw=0,offset=0,offsetTarget=0,speed=0,press=0,pressTarget=0,hover=0,hoverTarget=0,px=0,py=0,tx=0,ty=0,rippleAge=8,touch=null;
- let gl=null,program,texture,buffer,shaders=[],uniforms={},observer,resize;
+ let alive=true,visible=false,ready=false,raf=0,last=0,elapsed=0,progress=0,yaw=0,offset=0,offsetTarget=0,speed=0,press=0,pressTarget=0,hover=0,hoverTarget=0,px=0,py=0,tx=0,ty=0,rippleAge=8,touch=null,clarity=1;
+ let gl=null,program,texture,previousTexture,buffer,shaders=[],uniforms={},observer,resize;
  const ripple=[0,0];
  function geometry(){
   const r=stage.getBoundingClientRect();
@@ -22,14 +23,15 @@ export function initPanorama({motion,on}){
   fallback.style.transform=`scale(${breath}) translate(${px*-9}px,${py*-6}px)`;
   if(!ready||!gl)return;
   gl.useProgram(program);
-  gl.uniform1f(uniforms.yaw,angle);gl.uniform1f(uniforms.aspect,canvas.width/canvas.height);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,previousTexture);
+  gl.uniform1f(uniforms.clarity,clarity);gl.uniform1f(uniforms.yaw,angle);gl.uniform1f(uniforms.aspect,canvas.width/canvas.height);
   gl.uniform1f(uniforms.time,elapsed);gl.uniform1f(uniforms.motion,motion?1:0);gl.uniform1f(uniforms.speed,speed);gl.uniform1f(uniforms.press,press);gl.uniform1f(uniforms.hover,hover);
   gl.uniform2f(uniforms.pointer,px,py);gl.uniform2f(uniforms.ripple,ripple[0],ripple[1]);gl.uniform1f(uniforms.rippleAge,rippleAge);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
  }
  function tick(now){
   raf=0;if(!alive||!visible||document.hidden)return;
-  const dt=Math.min((now-last)/1000||.0167,.05);last=now;elapsed+=dt;rippleAge+=dt;
+  const dt=Math.min((now-last)/1000||.0167,.05);last=now;elapsed+=dt;rippleAge+=dt;clarity=Math.min(1,clarity+dt*1.6);
   progress=motion?geometry():0;
   // Damped scroll movement settles while the time-based water and breath continue.
   const target=TAU*smooth((progress-.035)/.93),oldYaw=yaw;
@@ -61,17 +63,20 @@ export function initPanorama({motion,on}){
  on(document,'visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(raf);raf=0;}else wake();});
  observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){yaw=motion?TAU*smooth((geometry()-.035)/.93):0;wake();}else{cancelAnimationFrame(raf);raf=0;pressTarget=0;hoverTarget=0;touch=null;}},{rootMargin:'80px'});observer.observe(stage);
  resize=new ResizeObserver(resizeView);resize.observe(pin);
- function disposeGL(){if(!gl)return;gl.deleteTexture(texture);gl.deleteBuffer(buffer);gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));gl=null;}
+ function disposeGL(){if(!gl)return;gl.deleteTexture(texture);gl.deleteTexture(previousTexture);gl.deleteBuffer(buffer);gl.deleteProgram(program);shaders.forEach(s=>gl.deleteShader(s));gl=null;}
  function useFallback(){disposeGL();canvas.hidden=true;ready=true;stage.classList.remove('is-webgl');stage.classList.add('is-ready');draw();}
  on(canvas,'webglcontextlost',e=>{e.preventDefault();useFallback();});
- const img=new Image();img.decoding='async';img.onload=()=>{
+ const sourceStop=progressiveTexture({target:stage,name:'garden-panorama',src:new URL('./assets/garden-panorama.webp?v=1.8.0',import.meta.url).href,onImage(img,high){
   if(!alive)return;
+  if(high)fallback.style.backgroundImage=`url('${img.src}')`;
+  if(ready&&gl){[texture,previousTexture]=[previousTexture,texture];gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);clarity=motion?0:1;wake();return;}
   try{
    gl=canvas.getContext('webgl',{alpha:false,antialias:false,depth:false,powerPreference:'low-power'});if(!gl){useFallback();return;}
    const vertex='attribute vec2 position;varying vec2 uv;void main(){uv=position;gl_Position=vec4(position,0.,1.);}';
    const fragment=`precision highp float;
-    varying vec2 uv;uniform sampler2D scene;uniform float yaw,aspect,time,motion,speed,press,hover,rippleAge;uniform vec2 pointer,ripple;
-    vec3 garden(vec2 p){float x=fract(p.x)*.9;float v=clamp(p.y,.006,.994);vec3 c=texture2D(scene,vec2(x,v)).rgb;if(x<.1)c=mix(texture2D(scene,vec2(x+.9,v)).rgb,c,smoothstep(0.,.1,x));return c;}
+    varying vec2 uv;uniform sampler2D scene,previousScene;uniform float clarity,yaw,aspect,time,motion,speed,press,hover,rippleAge;uniform vec2 pointer,ripple;
+    vec3 sampleScene(vec2 p){return mix(texture2D(previousScene,p).rgb,texture2D(scene,p).rgb,clarity);}
+    vec3 garden(vec2 p){float x=fract(p.x)*.9;float v=clamp(p.y,.006,.994);vec3 c=sampleScene(vec2(x,v));if(x<.1)c=mix(sampleScene(vec2(x+.9,v)),c,smoothstep(0.,.1,x));return c;}
     void main(){
      float breath=(.5+.5*sin(time*.68))*motion;
      vec2 screen=uv/(1.+breath*.028);
@@ -112,11 +117,11 @@ export function initPanorama({motion,on}){
    function compile(type,source){const s=gl.createShader(type);shaders.push(s);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
    program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Garden shader link');gl.useProgram(program);
    buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);const pos=gl.getAttribLocation(program,'position');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
-   texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);gl.uniform1i(gl.getUniformLocation(program,'scene'),0);
-   for(const name of ['yaw','aspect','time','motion','speed','press','hover','pointer','ripple','rippleAge'])uniforms[name]=gl.getUniformLocation(program,name);
+   [texture,previousTexture]=[gl.createTexture(),gl.createTexture()];
+   for(const [unit,tex] of [texture,previousTexture].entries()){gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,img);}gl.uniform1i(gl.getUniformLocation(program,'scene'),0);gl.uniform1i(gl.getUniformLocation(program,'previousScene'),1);
+   for(const name of ['clarity','yaw','aspect','time','motion','speed','press','hover','pointer','ripple','rippleAge'])uniforms[name]=gl.getUniformLocation(program,name);
    ready=true;resizeView();stage.classList.add('is-ready','is-webgl');wake();
   }catch(error){console.warn('Garden: using image fallback.',error);useFallback();}
- };
- img.onerror=()=>{if(alive)useFallback();};img.src=new URL('./assets/garden-panorama.webp?v=1.8.0',import.meta.url).href;
- return ()=>{alive=false;cancelAnimationFrame(raf);observer.disconnect();resize.disconnect();img.onload=null;img.onerror=null;disposeGL();};
+ }});
+ return ()=>{alive=false;cancelAnimationFrame(raf);observer.disconnect();resize.disconnect();sourceStop();disposeGL();};
 }

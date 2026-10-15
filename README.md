@@ -19,6 +19,8 @@ A multilingual portfolio for MINJA: visual direction, music visuals, live VJ and
 - Seven native-scroll chapters: image expansion, kinetic typography, split-mask scene changes, a horizontal project rail, glass takeover, photo constellation and closing invitation
 - Five-language AJAX inquiry form with required fields, email validation, honeypot, duplicate-submit prevention and recoverable error states
 - Xiaohongshu and Douyin contact links
+- Embedded 64-pixel WebP previews for every artwork and the panoramic garden, viewport-based HD loading, shared requests and a soft sharpening transition
+- Browser-side copy/drag/context-menu deterrents, with editing and clipboard shortcuts preserved inside inquiry fields
 
 ## Local development
 
@@ -38,6 +40,8 @@ Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
 - `story.js` / `story.css`: native-scroll timeline and chapter compositions
 - `motion.js` / `motion.css`: glyph physics, navigation and page-specific timelines
 - `hero-optics.js`: pointer-responsive hero imagery and visible-only rendering
+- `images.js` / `previews.js`: progressive image loading, preview data and lazy texture upgrades
+- `protection.js`: ordinary copy/save deterrents; these cannot prevent screenshots or direct network access to publicly served artwork
 - `icons.js`: font-independent inline SVG interface marks
 - `archive.js`: exhibition layout transitions and archive interactions
 - `logo-geometry.js` / `identity.js`: editable vector paths and the artwork-based glass screen renderer
@@ -51,3 +55,5 @@ Publish the `main` branch, `/ (root)`, in Settings → Pages. `.nojekyll` keeps 
 Typography uses Google Fonts (Bodoni Moda and DM Sans), with system fallbacks. All other assets are hosted in the repository. `media.js` records the source and served dimensions for each artwork. No PDF screenshots or PDF-cropped artwork is used. The existing brand outline is rebuilt as code-defined vector contours; the footer uses it as a small signature beside an interactive glass collage of the original artwork. No analytics. Contact inquiries are sent to FormSubmit for email delivery; the site has no private SMTP credentials. The recipient must complete the one-time FormSubmit email activation before delivery starts. Change the public endpoint in `contact-config.js` to change recipients. Submission success confirms service acceptance, not inbox receipt.
 
 All artwork © MINJA. No artwork reuse license is granted by this repository.
+
+After adding or replacing an artwork, regenerate the embedded previews with `python3 scripts/generate-previews.py` (Pillow required only for asset preparation). The 50 previews total about 20 KB of image data; the original HD files are preserved. Keep artwork dimensions in `media.js` up to date.

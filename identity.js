@@ -1,3 +1,4 @@
+import {preview,decodeImage,setProgressiveImage} from './images.js?v=2.0.0';
 // A small glass screen made from the portfolio itself. No stock 3D object.
 const vertex = `attribute vec2 position;varying vec2 uv;
 void main(){uv=vec2(position.x*.5+.5,.5-position.y*.5);gl_Position=vec4(position,0.,1.);}`;
@@ -103,17 +104,18 @@ export function initIdentity({motion,on}) {
  } catch(error) { if(gl){gl.deleteProgram(program);gl.deleteBuffer(buffer)}gl=null; }
  host.dataset.renderer='image';
  function load(){
-  if(loading)return;loading=true;
-  Promise.all(sources.map(src=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src}))).then(images=>{
-   if(!alive||!gl||images.some(img=>!img))return;
-   textures=images.map(img=>{const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+  if(loading||!gl)return;loading=true;
+  function upload(images){
+   if(!alive||!gl)return;
+   images.forEach((img,i)=>{if(!textures[i])textures[i]=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,textures[i]);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);return texture});
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);});
    ready=true;host.dataset.renderer='glass';render();schedule();
-  });
+  }
+  Promise.all(sourceNames.map(name=>decodeImage(preview(name)))).then(images=>{upload(images);return Promise.all(sources.map(src=>decodeImage(src)));}).then(upload).catch(()=>{});
  }
- function updateCaption(){counter.textContent=`0${targetIndex+1} / 0${sources.length}`;host.dataset.frame=String(targetIndex);fallback.src=sources[targetIndex];}
+ function updateCaption(){counter.textContent=`0${targetIndex+1} / 0${sources.length}`;host.dataset.frame=String(targetIndex);setProgressiveImage(fallback,{name:sourceNames[targetIndex],src:sources[targetIndex],sizes:'(max-width:700px) 70vw, 32vw'});}
  function change(step){desiredIndex=(desiredIndex+step+sources.length)%sources.length;
   if(progress>=1)startTransition();schedule();}
  function startTransition(){if(desiredIndex===index)return;targetIndex=desiredIndex;progress=motion?0:1;updateCaption();
