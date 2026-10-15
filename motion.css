@@ -204,32 +204,17 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .inquiry-submit[aria-busy=true] .ui-icon{display:none}
 .partner-ticker-track .partner-divider{display:inline-block;width:1px;height:.55em;margin:0 3vw;vertical-align:.06em;background:#899872;transform:rotate(20deg)}
 @media(max-width:700px){.partner-ticker-track .partner-divider{margin:0 5vw}.image-plus .ui-icon{width:16px;height:16px}}
-/* The note closes with an unobstructed, continuous garden viewport. */
-.personal-note .garden-viewer{height:78svh;min-height:520px;max-height:1000px;background:#263e43;color:#f2f1ec;isolation:isolate;scroll-margin-top:110px}
-.garden-surface{position:absolute;inset:0;cursor:grab;touch-action:pan-y;outline:none;user-select:none;-webkit-user-select:none}
-.garden-surface:focus-visible{outline:2px solid #f2f1ec;outline-offset:-7px}
+/* A full-bleed camera passage, driven by the page's native scroll. */
+.personal-note .garden-viewer{position:relative;height:86svh;min-height:520px;max-height:none;overflow:visible;background:#263e43;isolation:isolate;scroll-margin-top:0}
+.personal-note .garden-viewer.is-scroll-scene{height:350svh;min-height:1800px}
+.garden-pin{position:relative;height:100%;width:100%;overflow:clip;background:#263e43}
+.is-scroll-scene .garden-pin{position:sticky;top:0;height:100svh;min-height:520px}
+.garden-surface{position:absolute;inset:0;touch-action:pan-y;outline:none;user-select:none;-webkit-user-select:none}
+.garden-surface:focus-visible{outline:1px solid #f2f1ec88;outline-offset:-8px}
 .garden-surface canvas,.garden-fallback{position:absolute;inset:0;width:100%;height:100%;display:block}
-.garden-surface canvas{opacity:0}
+.garden-surface canvas{opacity:0;pointer-events:none}
 .garden-surface canvas[hidden]{display:none}
 .is-webgl .garden-surface canvas{opacity:1}
-.garden-fallback{background-image:url('./assets/garden-panorama.webp?v=1.8.0');background-size:auto 100%;background-position:50% 50%;background-repeat:repeat-x}
-.garden-caption{position:absolute;left:4vw;right:4vw;top:32px;display:flex;justify-content:space-between;pointer-events:none;text-shadow:0 1px 14px #13252d}
-.garden-caption .micro{font-size:10px;letter-spacing:.14em}
-.garden-hint{position:absolute;left:4vw;bottom:39px;display:flex;align-items:center;gap:14px;max-width:40%;font-size:12px;line-height:1.6;letter-spacing:.03em;pointer-events:none;opacity:.85;transition:opacity .6s}
-.garden-hint .ui-icon{width:24px;height:24px;flex:none}
-.garden-viewer:after{content:'';position:absolute;inset:65% 0 0;background:linear-gradient(transparent,#071b2880);pointer-events:none;z-index:1}
-.garden-caption,.garden-hint,.garden-toolbar{z-index:2}
-.garden-toolbar{position:absolute;right:4vw;bottom:27px;display:flex;align-items:center;gap:13px;min-height:44px}
-.garden-toolbar button{border:0;background:transparent;color:inherit;min-width:44px;min-height:44px;padding:10px;cursor:pointer;transition:background .25s,color .25s;border-radius:50%}
-.garden-toolbar button:hover,.garden-toolbar button:focus-visible{background:#f2f1ec22;outline:1px solid #f2f1ec80}
-.garden-toolbar .ui-icon{width:19px;height:19px}
-.garden-toolbar output{font-size:10px;font-variant-numeric:tabular-nums;min-width:36px;letter-spacing:.09em}
-.garden-toolbar .garden-reset{font-size:10px;border-radius:0;margin-left:16px;padding:10px 0;min-width:60px;position:relative}
-.garden-reset:after{content:'';position:absolute;left:0;right:0;bottom:7px;height:1px;background:currentColor;opacity:.5}
-.garden-compass{position:relative;width:100px;height:23px;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)}
-.garden-compass-track{position:absolute;left:-180px;top:8px;width:540px;height:8px;background:repeating-linear-gradient(90deg,#f2f1ec66 0 1px,transparent 1px 9px)}
-.garden-compass i{position:absolute;width:1px;height:22px;left:50%;top:0;background:currentColor}
-.garden-viewer.is-dragging .garden-surface{cursor:grabbing}
-.garden-viewer.is-dragging .garden-hint,.garden-viewer.has-explored .garden-hint{opacity:0}
-@media(max-width:700px){.personal-note .garden-viewer{height:72svh;min-height:440px;max-height:800px}.garden-caption{top:25px;left:7vw;right:7vw}.garden-caption .micro{font-size:8px}.garden-hint{left:7vw;right:7vw;bottom:100px;max-width:none;font-size:11px;justify-content:center}.garden-toolbar{left:7vw;right:7vw;bottom:22px;justify-content:center;gap:8px}.garden-compass{width:65px}.garden-toolbar .garden-reset{margin-left:10px}}
-@media(prefers-reduced-motion:reduce){.garden-surface canvas,.garden-hint{transition:none}}
+.garden-fallback{background-image:url('./assets/garden-panorama.webp?v=1.8.0');background-size:auto 100%;background-position:50% 50%;background-repeat:repeat-x;will-change:transform}
+.garden-pin:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#17223912,transparent 22%,transparent 80%,#0c151d1c)}
+@media(max-width:700px){.personal-note .garden-viewer{height:82svh;min-height:440px}.personal-note .garden-viewer.is-scroll-scene{height:330svh;min-height:1500px}.is-scroll-scene .garden-pin{height:100svh;min-height:440px}}
