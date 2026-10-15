@@ -19,7 +19,7 @@ A multilingual portfolio for MINJA: visual direction, music visuals, live VJ and
 - Seven native-scroll chapters: image expansion, kinetic typography, split-mask scene changes, a horizontal project rail, glass takeover, photo constellation and closing invitation
 - Five-language AJAX inquiry form with required fields, email validation, honeypot, duplicate-submit prevention and recoverable error states
 - Xiaohongshu and Douyin contact links
-- Embedded 64-pixel WebP previews for every artwork and the panoramic garden, viewport-based HD loading, shared requests and a soft sharpening transition
+- Recognizable 512–1024-pixel WebP previews for every artwork and the panoramic garden, viewport-based HD loading, shared requests and a soft sharpening transition
 - Browser-side copy/drag/context-menu deterrents, with editing and clipboard shortcuts preserved inside inquiry fields
 
 ## Local development
@@ -40,7 +40,7 @@ Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
 - `story.js` / `story.css`: native-scroll timeline and chapter compositions
 - `motion.js` / `motion.css`: glyph physics, navigation and page-specific timelines
 - `hero-optics.js`: pointer-responsive hero imagery and visible-only rendering
-- `images.js` / `previews.js`: progressive image loading, preview data and lazy texture upgrades
+- `images.js` / `previews.js`: progressive image loading, a small preview manifest and lazy texture upgrades
 - `protection.js`: ordinary copy/save deterrents; these cannot prevent screenshots or direct network access to publicly served artwork
 - `icons.js`: font-independent inline SVG interface marks
 - `archive.js`: exhibition layout transitions and archive interactions
@@ -56,4 +56,4 @@ Typography uses Google Fonts (Bodoni Moda and DM Sans), with system fallbacks. A
 
 All artwork © MINJA. No artwork reuse license is granted by this repository.
 
-After adding or replacing an artwork, regenerate the embedded previews with `python3 scripts/generate-previews.py` (Pillow required only for asset preparation). The 50 previews total about 20 KB of image data; the original HD files are preserved. Keep artwork dimensions in `media.js` up to date.
+After adding or replacing an artwork, regenerate the WebP previews with `python3 scripts/generate-previews.py` (Pillow required only for asset preparation). Preview files load on demand from `assets/previews/`; the original HD files are preserved. Ordinary images use 512-pixel-wide previews, the hero uses 768 pixels and the panorama uses 1024 pixels. Keep artwork dimensions in `media.js` up to date.

@@ -1,6 +1,6 @@
-import {previews} from './previews.js?v=2.0.0';
+import {previews} from './previews.js?v=2.0.1';
 
-export const preview=name=>previews[name.replace(/-sm$/,'')]?.src||'';
+export const preview=name=>{const entry=previews[name.replace(/-sm$/,'')];return entry?new URL(entry.src,import.meta.url).href:'';};
 const records=new WeakMap(),decoded=new Map();
 let observeImage=null,queue=[],active=0;
 
@@ -16,7 +16,7 @@ export function decodeImage(src,{srcset='',sizes='',priority='auto'}={}){
  });
  decoded.set(key,promise);
  // Keep only in-flight HD requests; don't retain every decoded full-size bitmap.
- promise.then(()=>{if(!src.startsWith('data:'))decoded.delete(key);},()=>decoded.delete(key));
+ promise.then(()=>decoded.delete(key),()=>decoded.delete(key));
  return promise;
 }
 
@@ -27,7 +27,7 @@ export function setProgressiveImage(image,{name,src,srcset='',sizes='100vw',prio
  records.delete(image);image.removeAttribute('srcset');image.removeAttribute('sizes');
  image.dataset.fullSrc=src;image.dataset.fullSrcset=srcset;image.dataset.fullSizes=sizes;image.dataset.imageState='preview';
  image.dataset.imageName=name;image.dataset.priority=priority;image.draggable=false;
- image.src=preview(name);image.loading='eager';image.decoding='async';
+ image.loading=priority==='high'?'eager':'lazy';image.src=preview(name);image.decoding='async';
  observeImage?.(image);
 }
 
@@ -42,12 +42,12 @@ export function initImages(){
     await decodeImage(state.src,{srcset:state.srcset,sizes:state.sizes,priority:state.priority});
     if(!valid())return;
     // Keep the placeholder until a decoded, correctly sized image is in cache.
-    image.sizes=state.sizes;if(state.srcset)image.srcset=state.srcset;image.src=state.src;
+    image.loading='eager';image.sizes=state.sizes;if(state.srcset)image.srcset=state.srcset;image.src=state.src;
     await image.decode();if(!valid())return;
     image.dataset.imageState='ready';
     if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!document.documentElement.classList.contains('motion-off')){
      const filter=getComputedStyle(image).filter;
-     image.animate([{filter:(filter==='none'?'':filter+' ')+'blur(7px)'},{filter:filter==='none'?'blur(0px)':filter}],{duration:600,easing:'cubic-bezier(.2,.65,.25,1)'});
+     image.animate([{filter:(filter==='none'?'':filter+' ')+'blur(2.5px)'},{filter:filter==='none'?'blur(0px)':filter}],{duration:450,easing:'cubic-bezier(.2,.65,.25,1)'});
     }
    }catch{
     if(!valid())return;
@@ -70,7 +70,7 @@ export function initImages(){
  return()=>{alive=false;observeImage=null;observer.disconnect();mutations.disconnect();window.removeEventListener('online',retry);queue=[];};
 }
 
-// Textures get the same tiny first frame, then upgrade when their section is near.
+// Textures begin with a recognizable preview, then upgrade when their section is near.
 export function progressiveTexture({target,name,src,onImage}){
  let alive=true,highSeen=false;
  decodeImage(preview(name)).then(image=>{if(alive&&!highSeen)onImage(image,false);}).catch(()=>{});

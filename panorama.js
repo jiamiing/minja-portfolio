@@ -1,4 +1,4 @@
-import {progressiveTexture} from './images.js?v=2.0.0';
+import {progressiveTexture} from './images.js?v=2.0.1';
 const TAU=Math.PI*2;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x);};

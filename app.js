@@ -1,11 +1,11 @@
-import {preview,initImages,setProgressiveImage,progressiveTexture} from './images.js?v=2.0.0';
+import {preview,initImages,setProgressiveImage,progressiveTexture} from './images.js?v=2.0.1';
 import {initProtection} from './protection.js?v=2.0.0';
-import {initPanorama} from './panorama.js?v=2.0.0';
+import {initPanorama} from './panorama.js?v=2.0.1';
 import {initHeroOptics} from './hero-optics.js?v=2.0.0';
 import {icon} from './icons.js?v=1.6.1';
 import {logoSvg} from './logo-geometry.js?v=1.3.1';
 import {initArchive} from './archive.js?v=1.6.0';
-import {initIdentity} from './identity.js?v=2.0.0';
+import {initIdentity} from './identity.js?v=2.0.1';
 import {initLetterFields,initNavigation,initPageMotion} from './motion.js?v=1.6.0';
 import {initStory} from './story.js?v=1.3.0';
 import {initInquiry} from './inquiry.js?v=1.2.0';
@@ -25,7 +25,7 @@ const a=(p,label,cl='')=>`<a class="${cl}" href="${url(p)}" data-nav>${label}</a
 const arrow=`<span class="direction-mark" aria-hidden="true">${icon('arrow-up-right')}</span>`;
 function image(name,alt='',cls='',priority=false,sizes='(max-width: 700px) 100vw, 90vw'){
  const m=media[name];if(!m)throw new Error(`Unknown artwork: ${name}`);
- return `<img class="${cls}" src="${preview(name)}" data-image-name="${name}" data-image-state="preview" data-full-src="${asset(name+'-sm')}" data-full-srcset="${asset(name+'-sm')} ${m.smallWidth}w, ${asset(name)} ${m.width}w" data-full-sizes="${sizes}" data-priority="${priority?'high':'auto'}" width="${m.width}" height="${m.height}" alt="${alt}" draggable="false" decoding="async">`;
+ return `<img class="${cls}" src="${preview(name)}" data-image-name="${name}" data-image-state="preview" data-full-src="${asset(name+'-sm')}" data-full-srcset="${asset(name+'-sm')} ${m.smallWidth}w, ${asset(name)} ${m.width}w" data-full-sizes="${sizes}" data-priority="${priority?'high':'auto'}" width="${m.width}" height="${m.height}" alt="${alt}" draggable="false" decoding="async" loading="${priority?'eager':'lazy'}" fetchpriority="${priority?'high':'auto'}">`;
 }
 function frame(name,cls='',priority=false){const m=media[name];return `<button class="art-frame ${cls}" style="--image-ratio:${m.width/m.height}" data-lightbox="${name}" aria-label="${t.enlarge}">${image(name,'MINJA — '+name.replaceAll('-',' '),'',priority)}<span class="image-plus" aria-hidden="true">${icon('plus')}</span></button>`;}
 const wordmark=logoSvg;
