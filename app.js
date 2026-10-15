@@ -1,4 +1,4 @@
-import {copy,languages,projects,contact} from './content.js';
+import {copy,languages,projects,contact} from './content.js?v=1.0.1';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const root=$('#app'), base=new URL('.',import.meta.url);
 $('link[rel="icon"]').href=new URL('favicon.svg',base).href;
