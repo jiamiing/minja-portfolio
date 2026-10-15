@@ -8,3 +8,5 @@
 @media(pointer:coarse){#cursor{display:none!important}.card-arrow{transform:none}}
 html:not([lang=en]) h1,html:not([lang=en]) h2{letter-spacing:-.035em}html[lang=ko] h1,html[lang=ko] h2{word-break:keep-all}html:not([lang=en]) .hero-title{font-size:clamp(60px,7vw,110px)}
 @media(max-width:700px){html:not([lang=en]) .hero-title{font-size:46px;line-height:1.2}html:not([lang=en]) .contact-top h1{font-size:47px;line-height:1.2}html[lang=ko] .contact-top h1{font-size:45px}html:not([lang=en]) .note-copy h1{font-size:48px;line-height:1.2}html:not([lang=en]) .page-intro h1{font-size:51px;line-height:1.2}}
+
+.hero-canvas{transform:scale(1.055)}

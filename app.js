@@ -1,6 +1,7 @@
 import {copy,languages,projects,contact} from './content.js';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const root=$('#app'), base=new URL('.',import.meta.url);
+$('link[rel="icon"]').href=new URL('favicon.svg',base).href;
 const url=(path='')=>new URL(path,base).pathname;
 const asset=(name)=>new URL(`assets/${name}.webp`,base).href;
 const storage={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
