@@ -23,12 +23,17 @@ export function initStory({motion,on}){
    const end=el.querySelector('.opening-exit');end.style.opacity=range(p,.64,.83)*(1-range(p,.9,1));end.style.transform=`translateY(${mix(12,-10,exit)}vh) scale(${mix(.9,1.05,exit)})`;
   }
   if(state.type==='statement'){
-   set(el,'--read',ease(range(p,.02,.6)));set(el,'--spread',ease(range(p,.2,.9)));
-   const title=el.querySelector('.statement-title');title.style.transform=`translateY(${mix(11,-9,p)}vh) scale(${mix(.9,1.06,p)})`;title.style.clipPath=`inset(0 ${100-ease(range(p,.02,.55))*100}% 0 0)`;
-   const a=el.querySelector('.statement-photo-a'),b=el.querySelector('.statement-photo-b');
-   a.style.transform=`translate3d(${mix(-20,-3,p)}vw,${mix(15,-14,p)}vh,0) rotate(${mix(-16,-5,p)}deg)`;
-   b.style.transform=`translate3d(${mix(20,2,p)}vw,${mix(20,-12,p)}vh,0) rotate(${mix(15,6,p)}deg)`;
-   el.querySelector('.statement-copy').style.opacity=range(p,.25,.5)*(1-range(p,.9,1));
+   const compact=viewportWidth<700,assemble=ease(range(p,.02,.36)),triptych=ease(range(p,.36,.62)),takeover=ease(range(p,.67,.92));
+   const positions=compact?[[-28,-23,-10],[0,12,4],[29,-19,12],[-28,29,7],[30,34,-8],[0,-37,5]]:[[-33,-10,-10],[0,9,6],[33,-14,11],[-25,28,8],[27,31,-7],[2,-28,-4]];
+   el.querySelectorAll('[data-signal-panel]').forEach((panel,i)=>{const [x,y,r]=positions[i],arrive=ease(range(p,-.12+i*.025,.24+i*.025)),front=i<3;let px=mix(x*2.1,x,arrive),py=mix(y+40,y,arrive),rotate=mix(r*3,r,arrive),width=compact?43:29,height=compact?24:35;
+    if(front){px=mix(px,(i-1)*33.4,triptych);py=mix(py,0,triptych);rotate=mix(rotate,0,triptych);width=mix(width,33.6,triptych);height=mix(height,84,triptych);if(i===1){width=mix(width,100,takeover);height=mix(height,100,takeover)}else{px+=Math.sign(i-1)*takeover*80}}
+    panel.style.width=width+'vw';panel.style.height=height+'vh';panel.style.transform=`translate3d(calc(-50% + ${px}vw),calc(-50% + ${py}vh),0) perspective(1200px) rotateY(${(1-arrive)*(i%2?25:-25)}deg) rotate(${rotate}deg)`;panel.style.opacity=arrive*(front?1:1-triptych);panel.style.clipPath=`inset(${(1-arrive)*100}% 0 0 0)`;panel.querySelector('img').style.transform=`scale(${mix(1.2,1.02,arrive)}) translateY(${-p*3}%)`;
+   });
+   const type=el.querySelector('.signal-type');type.style.transform=`translateY(${mix(8,-21,triptych)+takeover*8}vh) scale(${mix(1,.7,triptych)})`;type.style.opacity=(.7+.3*range(p,0,.12))*(1-range(p,.9,1));
+   const echo=el.querySelector('.signal-type-echo');echo.style.transform=`translate(${triptych*7}vw,${triptych*5}vh)`;echo.style.opacity=Math.sin(triptych*Math.PI)*.35;
+   el.querySelector('.signal-copy').style.opacity=range(p,.48,.65);el.querySelector('.signal-copy').style.transform=`translateY(${mix(8,0,ease(range(p,.48,.78)))}vh)`;
+   el.querySelector('.signal-state').textContent=`0${p<.36?1:p<.67?2:3} / 03`;el.querySelector('.signal-meter i').style.transform=`scaleX(${p})`;
+   el.style.setProperty('--signal-open',assemble);
   }
   if(state.type==='worlds'){
    let active=0;
