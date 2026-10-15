@@ -37,7 +37,7 @@ Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
 - `style.css`: shared typography and layout
 - `story.js` / `story.css`: native-scroll timeline and chapter compositions
 - `motion.js` / `motion.css`: glyph physics, navigation and page-specific timelines
-- `hero-optics.js`: transparent optical bevels, subtle image refraction and visible-only rendering
+- `hero-optics.js`: pointer-responsive hero imagery and visible-only rendering
 - `icons.js`: font-independent inline SVG interface marks
 - `archive.js`: exhibition layout transitions and archive interactions
 - `logo-geometry.js` / `identity.js`: editable vector paths and the artwork-based glass screen renderer
