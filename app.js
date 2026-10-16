@@ -1,4 +1,4 @@
-import {signatureMarkup,initSignature} from './signature.js?v=2.2.0';
+import {signatureMarkup,initSignature} from './signature.js?v=2.3.0';
 import {preview,initImages,setProgressiveImage,progressiveTexture} from './images.js?v=2.0.1';
 import {initProtection} from './protection.js?v=2.0.0';
 import {initPanorama} from './panorama.js?v=2.0.1';
