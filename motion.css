@@ -36,7 +36,7 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .footer-signature svg{display:block;width:100%;height:24px}
 .footer-signature:focus-visible{outline-offset:8px}
 .image-endnote{width:344px;max-width:100%;position:relative;margin:0}
-.portal-heading{display:flex;justify-content:space-between;align-items:center;padding:0 12px}
+.portal-heading{display:flex;justify-content:flex-end;align-items:center;padding:0 12px}
 .portal-heading>.micro{font-size:9px;letter-spacing:.08em;color:#5d6655}
 .portal-reset{height:28px;width:28px;display:grid;place-items:center;transition:transform .6s var(--ease),opacity .3s}
 .portal-reset:hover{transform:rotate(-65deg)}
@@ -54,7 +54,7 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 .portal-corner-a{left:21px;top:27px;border-top:1px solid #7d8973;border-left:1px solid #7d8973}
 .portal-corner-b{right:21px;bottom:27px;border-bottom:1px solid #7d8973;border-right:1px solid #7d8973}
 .is-revealing .portal-corner-a{transform:translate(5px,5px);opacity:1}.is-revealing .portal-corner-b{transform:translate(-5px,-5px);opacity:1}
-.portal-caption{display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+.portal-caption{display:flex;align-items:center;justify-content:flex-end;padding:0 12px}
 .portal-count{font-size:8px;color:#737d68;letter-spacing:.07em}
 .portal-navigation{display:flex;gap:12px}
 .portal-navigation button{width:30px;height:28px;color:#6f7c60;font-size:16px;line-height:1;transition:transform .4s var(--ease),color .3s}
