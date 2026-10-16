@@ -224,3 +224,15 @@ main:not(.page-motion) .page-track{height:auto}main:not(.page-motion) .page-pin{
 img[data-full-src]{color:transparent}
 
 #lightbox img[data-full-src]{width:min(90vw,calc(82svh * var(--image-ratio,1.78)));height:auto;object-fit:contain}
+
+/* A living ink signature: vector contours, local touch response, quiet registration echo. */
+.note-reading-aside{gap:34px}
+.note-reading-mark.ink-signature{position:relative;display:block;width:100%;max-width:390px;height:auto;aspect-ratio:1.72;margin:8px 0 10px;overflow:visible;isolation:isolate;touch-action:pan-y;scroll-margin-top:190px;border-radius:2px;outline-offset:10px}
+.ink-signature svg{display:block;width:100%;height:100%;color:var(--ink);transform:none;overflow:visible;pointer-events:none}
+.signature-ink{fill:url(#signature-ink);fill-rule:evenodd}
+.signature-echo{fill:none;stroke:#89967a;stroke-width:.85;opacity:.12;transform:translate(3px,-5px);stroke-linejoin:round}
+.signature-light{fill:url(#signature-light);fill-rule:evenodd;opacity:0}
+.ink-signature:focus-visible{outline:none}.ink-signature:focus-visible:after{content:"";position:absolute;left:8%;right:8%;bottom:15%;height:1px;background:#89967a}
+.signature-alternate .signature-ink{fill:#68765b}
+.signature-alternate .signature-echo{opacity:.5;transform:translate(7px,-8px)}
+@media(max-width:700px){.note-reading-aside{display:flex;align-items:flex-start;gap:19px;margin-bottom:55px}.note-reading-aside>.micro:last-child{max-width:none}.note-reading-mark.ink-signature{align-self:flex-start;width:min(100%,340px);max-width:none;aspect-ratio:2.15;margin:3px 0 0;transform:none;scroll-margin-top:150px}}
