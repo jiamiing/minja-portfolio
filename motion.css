@@ -225,14 +225,12 @@ img[data-full-src]{color:transparent}
 
 #lightbox img[data-full-src]{width:min(90vw,calc(82svh * var(--image-ratio,1.78)));height:auto;object-fit:contain}
 
-/* A living ink signature: vector contours, local touch response, quiet registration echo. */
-.note-reading-aside{gap:34px}
-.note-reading-mark.ink-signature{position:relative;display:block;width:100%;max-width:390px;height:auto;aspect-ratio:1.72;margin:8px 0 10px;overflow:visible;isolation:isolate;touch-action:pan-y;scroll-margin-top:190px;border-radius:2px;outline-offset:10px}
-.ink-signature svg{display:block;width:100%;height:100%;color:var(--ink);transform:none;overflow:visible;pointer-events:none}
-.signature-ink{fill:url(#signature-ink);fill-rule:evenodd}
-.signature-echo{fill:none;stroke:#89967a;stroke-width:.85;opacity:.12;transform:translate(3px,-5px);stroke-linejoin:round}
-.signature-light{fill:url(#signature-light);fill-rule:evenodd;opacity:0}
-.ink-signature:focus-visible{outline:none}.ink-signature:focus-visible:after{content:"";position:absolute;left:8%;right:8%;bottom:15%;height:1px;background:#89967a}
-.signature-alternate .signature-ink{fill:#68765b}
-.signature-alternate .signature-echo{opacity:.5;transform:translate(7px,-8px)}
-@media(max-width:700px){.note-reading-aside{display:flex;align-items:flex-start;gap:19px;margin-bottom:55px}.note-reading-aside>.micro:last-child{max-width:none}.note-reading-mark.ink-signature{align-self:flex-start;width:min(100%,340px);max-width:none;aspect-ratio:2.15;margin:3px 0 0;transform:none;scroll-margin-top:150px}}
+/* A photographic plate with an intact, small signature. */
+.note-reading-aside{gap:28px}
+.note-reading-mark.signature-plate{position:relative;display:block;width:100%;max-width:330px;height:auto;aspect-ratio:1.06;margin:8px 0 4px;overflow:visible;transform:none;touch-action:pan-y;scroll-margin-top:150px;text-align:left;cursor:zoom-in}
+.signature-plate .signature-picture{position:absolute;inset:0 0 35px;display:block;overflow:hidden;clip-path:inset(0 18% 0 0)}
+.signature-plate .signature-picture img{width:100%;height:100%;object-fit:cover;object-position:50% 45%;transform:scale(1.08)}
+.signature-plate .signature-imprint{position:absolute;right:0;bottom:0;display:block;width:63%;padding:15px 0 0 17px;background:var(--paper);color:var(--ink)}
+.signature-plate .signature-imprint svg{display:block;width:100%;height:auto;transform:none;color:inherit;overflow:visible}
+.signature-plate:focus-visible{outline:1px solid #7b826d;outline-offset:8px}
+@media(max-width:700px){.note-reading-aside{display:flex;align-items:flex-start;gap:19px;margin-bottom:55px}.note-reading-aside>.micro:last-child{max-width:none}.note-reading-mark.signature-plate{width:min(100%,300px);max-width:none;aspect-ratio:1.6;margin:4px 0 2px;transform:none;scroll-margin-top:125px}.signature-plate .signature-picture{bottom:24px}.signature-plate .signature-imprint{width:58%;padding:11px 0 0 13px}}
