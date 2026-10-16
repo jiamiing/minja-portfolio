@@ -9,13 +9,11 @@ const fragment=`precision highp float;
 varying vec2 uv;uniform sampler2D artwork,previousArtwork,alternateArtwork,previousAlternate;
 uniform vec2 resolution,photo,mouse,drift;uniform vec4 wakes[4];
 uniform float time,activity,pressure,clarity,secondaryClarity,blend,reading;
+float revealAmount;
 vec3 sampleArt(vec2 p){
  vec3 first=mix(texture2D(previousArtwork,p).rgb,texture2D(artwork,p).rgb,clarity);
  vec3 second=mix(texture2D(previousAlternate,p).rgb,texture2D(alternateArtwork,p).rgb,secondaryClarity);
- vec2 delta=(uv-mouse)*vec2(resolution.x/resolution.y,1.);
- float local=exp(-dot(delta,delta)*7.);
- float dissolve=clamp(blend+sin(blend*3.14159265)*(local-.45)*.28,0.,1.);
- return mix(first,second,dissolve);
+ return mix(first,second,revealAmount);
 }
 void main(){
  float ratio=resolution.x/resolution.y,sourceRatio=photo.x/photo.y;
@@ -35,6 +33,10 @@ void main(){
  }
  refraction*=1.-pressure*.9;
  q+=refraction*cover;
+ // A bounded reveal follows the refracted pointer field; the rest stays on the warm artwork.
+ vec2 revealMetric=(uv-mouse+refraction*1.8)*vec2(ratio,1.);
+ float revealRadius=.26+pressure*.035;
+ revealAmount=blend*(1.-smoothstep(revealRadius*.46,revealRadius,length(revealMetric)));
  // The surface follows the photograph's highlights rather than drawing a UI ring.
  vec3 color=sampleArt(q);
  float dispersion=lens*.0011+length(refraction)*.07;
@@ -87,9 +89,15 @@ export function initSignature({motion,on}){
  const root=document.querySelector('.signature-plate');if(!root)return()=>{};
  const frame=root.querySelector('.signature-picture'),photo=frame.querySelector('img'),imprint=root.querySelector('.signature-imprint'),canvas=root.querySelector('canvas');
  const photos=[...frame.querySelectorAll('img')],alternate=photos[1];
- function setImage(mix){alternate.style.opacity=mix.toFixed(3);root.dataset.lightbox=mix>.5?'eastern-a':'eastern-bloom';root.dataset.imageMix=mix.toFixed(3);}
+ function setImage(mix,mx=.5,my=.5,pressure=0){
+  const radius=frame.clientHeight*(.26+pressure*.035);
+  const mask=`radial-gradient(circle ${radius.toFixed(2)}px at ${(mx*100).toFixed(2)}% ${(my*100).toFixed(2)}%, #000 46%, transparent 100%)`;
+  alternate.style.opacity=mix.toFixed(3);alternate.style.maskImage=mask;alternate.style.webkitMaskImage=mask;
+  root.dataset.lightbox=mix>.5?'eastern-jewel':'eastern-bloom';root.dataset.imageMix=mix.toFixed(3);root.dataset.revealRadius=radius.toFixed(2);
+ }
  if(!motion){
-  on(root,'pointerenter',()=>setImage(1));on(root,'pointerleave',()=>setImage(0));on(root,'focus',()=>setImage(1));on(root,'blur',()=>setImage(0));return()=>{};
+  const local=e=>{const r=frame.getBoundingClientRect();setImage(1,Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),Math.max(0,Math.min(1,(e.clientY-r.top)/r.height)))};
+  on(root,'pointerenter',local);on(root,'pointermove',local,{passive:true});on(root,'pointerleave',()=>setImage(0));on(root,'focus',()=>setImage(1));on(root,'blur',()=>setImage(0));return()=>{};
  }
  const surface=createSurface(canvas,photos,on);
  let alive=true,raf=0,last=0,time=0,x=0,y=0,tx=0,ty=0,mx=.5,my=.5,activity=0,pressure=0,reading=0,open=0,entered=0;
@@ -123,7 +131,7 @@ export function initSignature({motion,on}){
   frame.style.clipPath=`inset(${(1-entered)*6}% ${((1-open)*18).toFixed(3)}% 0 0)`;
   frame.style.transform=`perspective(850px) translate3d(${(x*6).toFixed(2)}px,${(reading*14+(1-entered)*16).toFixed(2)}px,0) rotateX(${(-y*6*activity).toFixed(3)}deg) rotateY(${(x*7*activity).toFixed(3)}deg)`;
   imprint.style.transform=`translate3d(${(-x*5).toFixed(2)}px,${(-reading*10-y*4).toFixed(2)}px,0)`;
-  photos.forEach(img=>img.style.transform=`translate3d(${(-x*10).toFixed(2)}px,${(y*7+reading*8).toFixed(2)}px,0) scale(${(1.08-pressure*.065).toFixed(4)})`);setImage(activity);
+  photos.forEach(img=>img.style.transform=`translate3d(${(-x*10).toFixed(2)}px,${(y*7+reading*8).toFixed(2)}px,0) scale(${(1.08-pressure*.065).toFixed(4)})`);setImage(activity,mx,my,pressure);
   surface?.draw({time,x,y,mx,my,activity,pressure,reading,wakes},dt);
   root.dataset.signatureState=held?'held':activity>.03?'responding':'resting';root.dataset.surface=canvas.classList.contains('ready')?'ready':'fallback';
   schedule();
