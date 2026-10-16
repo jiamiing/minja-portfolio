@@ -10,7 +10,7 @@ import {initIdentity} from './identity.js?v=2.0.1';
 import {initLetterFields,initNavigation,initPageMotion} from './motion.js?v=1.6.0';
 import {initStory} from './story.js?v=1.3.0';
 import {initInquiry} from './inquiry.js?v=1.2.0';
-import {formConfig} from './contact-config.js?v=1.2.0';
+import {formConfig} from './contact-config.js?v=2.5.2';
 import {copy,languages,projects,contact,atlas} from './content.js?v=1.9.0';
 import {media} from './media.js?v=1.1.0';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];

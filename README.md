@@ -2,7 +2,7 @@
 
 A multilingual portfolio for MINJA: visual direction, music visuals, live VJ and generative film.
 
-**Live site:** https://jiamiing.github.io/minja-portfolio/
+**Live site:** https://minja.studio/
 
 ## Experience
 
