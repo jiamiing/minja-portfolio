@@ -17,7 +17,11 @@ export function initSignature({motion,on}){
  const light=root.querySelector('#signature-light'),echo=root.querySelector('.signature-echo'),glaze=root.querySelector('.signature-light');
  let alive=true,raf=0,visible=false,seen=false,last=0,time=0,px=365,py=90,tx=365,ty=90,near=0,targetNear=0,energy=0,phase=8,scroll=0,velocity=0,previousScroll=window.scrollY,focused=false;
  const states=glyphs.map(()=>({x:0,y:0,vx:0,vy:0}));
- function schedule(){if(alive&&!raf&&!document.hidden&&(visible||!motion))raf=requestAnimationFrame(tick)}
+ function schedule(){
+  if(!alive||raf||document.hidden||!motion)return;
+  const r=root.getBoundingClientRect();visible=r.bottom>-60&&r.top<innerHeight+60;
+  if(visible){if(!seen){seen=true;energy=.65;phase=0}raf=requestAnimationFrame(tick)}
+ }
  function locate(e){const r=svg.getBoundingClientRect();tx=-40+(e.clientX-r.left)/r.width*810;ty=-60+(e.clientY-r.top)/r.height*300;targetNear=1;schedule()}
  function activate(){if(!motion){root.classList.toggle('signature-alternate');return}energy=Math.min(1.4,energy+.95);phase=0;schedule()}
  on(root,'pointermove',e=>{if(motion)locate(e)},{passive:true});
@@ -31,8 +35,7 @@ export function initSignature({motion,on}){
  on(root,'blur',()=>{focused=false;targetNear=0;schedule()});
  on(window,'scroll',()=>{const now=window.scrollY;velocity=Math.max(-30,Math.min(30,now-previousScroll));previousScroll=now;schedule()},{passive:true});
  on(document,'visibilitychange',schedule);
- const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible){last=0;if(!seen&&motion){seen=true;energy=.65;phase=0}schedule()}else{cancelAnimationFrame(raf);raf=0}},{threshold:0,rootMargin:'60px'});observer.observe(root);
- const resize=new ResizeObserver(schedule);resize.observe(root);
+ const resize=new ResizeObserver(schedule);resize.observe(root);schedule();
  function tick(now){
   raf=0;if(!alive||document.hidden||!visible||!motion)return;
   const dt=Math.min(2,(now-last)/16.667||1);last=now;time+=dt/60;phase+=dt/60;
@@ -65,5 +68,5 @@ export function initSignature({motion,on}){
   root.dataset.signatureState=phase<2.5&&energy>.1?'ripple':near>.05?'responding':'breathing';
   schedule();
  }
- return()=>{alive=false;cancelAnimationFrame(raf);observer.disconnect();resize.disconnect()};
+ return()=>{alive=false;cancelAnimationFrame(raf);resize.disconnect()};
 }
