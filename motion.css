@@ -241,3 +241,5 @@ img[data-full-src]{color:transparent}
 .signature-plate .signature-picture{transform-origin:50% 55%;will-change:transform,clip-path}
 .signature-plate .signature-imprint{will-change:transform}
 @media(max-width:700px){.signature-anchor{max-width:300px;scroll-margin-top:125px}}
+
+.signature-plate .signature-picture img.signature-alternate{position:absolute;inset:0;opacity:0;pointer-events:none}
