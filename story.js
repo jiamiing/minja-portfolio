@@ -34,21 +34,21 @@ export function initStory({ motion, on }) {
     document
       .querySelectorAll('.world-scene,.rail-card,[data-collage]')
       .forEach((el) => (el.inert = false));
-    tracks.forEach((el) => el.style.setProperty('--p', '0'));
     return () => body.classList.remove('story-motion');
+  }
+  // Scroll handlers run every frame; skip text writes that would not change anything.
+  function setText(node, text) {
+    if (node.textContent !== text) node.textContent = text;
   }
   function set(el, k, v) {
     el.style.setProperty(k, typeof v === 'number' ? v.toFixed(5) : v);
   }
   function paint(state, p) {
     const el = state.el;
-    set(el, '--p', p);
     el.dataset.progress = p.toFixed(3);
     if (state.type === 'opening') {
       const fill = ease(range(p, 0.05, 0.55)),
         exit = ease(range(p, 0.58, 1));
-      set(el, '--fill', fill);
-      set(el, '--exit', exit);
       const art = el.querySelector('.opening-art');
       art.style.clipPath = `inset(${mix(11, 0, fill)}% ${mix(5, 0, fill)}% ${mix(5, 0, fill)}%)`;
       art.style.transform = `scale(${mix(0.96, 1.04, fill)}) translateY(${-exit * 7}vh)`;
@@ -61,7 +61,6 @@ export function initStory({ motion, on }) {
     }
     if (state.type === 'statement') {
       const compact = viewportWidth < 700,
-        assemble = ease(range(p, 0.02, 0.36)),
         triptych = ease(range(p, 0.36, 0.62)),
         takeover = ease(range(p, 0.67, 0.92));
       const positions = compact
@@ -117,9 +116,8 @@ export function initStory({ motion, on }) {
       el.querySelector('.signal-copy').style.opacity = range(p, 0.48, 0.65);
       el.querySelector('.signal-copy').style.transform =
         `translateY(${mix(8, 0, ease(range(p, 0.48, 0.78)))}vh)`;
-      el.querySelector('.signal-state').textContent = `0${p < 0.36 ? 1 : p < 0.67 ? 2 : 3} / 03`;
+      setText(el.querySelector('.signal-state'), `0${p < 0.36 ? 1 : p < 0.67 ? 2 : 3} / 03`);
       el.querySelector('.signal-meter i').style.transform = `scaleX(${p})`;
-      el.style.setProperty('--signal-open', assemble);
     }
     if (state.type === 'worlds') {
       let active = 0;
@@ -141,7 +139,7 @@ export function initStory({ motion, on }) {
       [...el.querySelectorAll('[data-world-dot]')].forEach((dot, i) =>
         dot.classList.toggle('active', i === active),
       );
-      el.querySelector('.world-count').textContent = `0${active + 1} / 03`;
+      setText(el.querySelector('.world-count'), `0${active + 1} / 03`);
     }
     if (state.type === 'rail') {
       const rail = el.querySelector('.cinema-rail'),
@@ -158,7 +156,7 @@ export function initStory({ motion, on }) {
           `scale(1.1) translateX(${clamp(d, -1, 1) * -4}%)`;
         card.inert = Math.abs(d) > 1.3;
       });
-      el.querySelector('.rail-count').textContent = `0${active + 1} / 06`;
+      setText(el.querySelector('.rail-count'), `0${active + 1} / 06`);
       el.querySelector('.rail-meter i').style.transform = `scaleX(${travel})`;
     }
     if (state.type === 'glass') {

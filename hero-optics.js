@@ -126,10 +126,9 @@ export function initHeroOptics({ canvas, img, motion, on }) {
     last = now;
     clock += dt;
     clarity = Math.min(1, clarity + dt * 1.8);
-    const rect = canvas.getBoundingClientRect(),
-      d = Math.min(devicePixelRatio || 1, 1.25);
-    const width = Math.round(rect.width * d),
-      height = Math.round(rect.height * d);
+    const d = Math.min(devicePixelRatio || 1, 1.25);
+    const width = Math.round(canvas.clientWidth * d),
+      height = Math.round(canvas.clientHeight * d);
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
@@ -152,7 +151,7 @@ export function initHeroOptics({ canvas, img, motion, on }) {
     gl.uniform1f(uniforms.energy, energy);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
     canvas.classList.add('ready');
-    schedule();
+    if (energy > 0.002 || clarity < 1 || Math.abs(tx - px) + Math.abs(ty - py) > 0.0005) schedule();
   }
   const observer = new IntersectionObserver(
     (entries) => {
@@ -182,6 +181,7 @@ export function initHeroOptics({ canvas, img, motion, on }) {
     },
     { passive: true },
   );
+  on(window, 'resize', schedule, { passive: true });
   on(document, 'visibilitychange', () => {
     if (document.hidden) {
       cancelAnimationFrame(raf);

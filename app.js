@@ -1,14 +1,14 @@
-import { signatureMarkup, initSignature } from './signature.js?v=2.5.0';
+import { signatureMarkup, initSignature } from './signature.js?v=2.6.0';
 import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.0.1';
 import { initProtection } from './protection.js?v=2.0.0';
-import { initPanorama } from './panorama.js?v=2.0.1';
-import { initHeroOptics } from './hero-optics.js?v=2.0.0';
+import { initPanorama } from './panorama.js?v=2.1.0';
+import { initHeroOptics } from './hero-optics.js?v=2.1.0';
 import { icon } from './icons.js?v=1.6.1';
 import { logoSvg } from './logo-geometry.js?v=1.3.1';
 import { initArchive } from './archive.js?v=1.6.0';
 import { initIdentity } from './identity.js?v=2.0.1';
-import { initLetterFields, initNavigation, initPageMotion } from './motion.js?v=1.6.0';
-import { initStory } from './story.js?v=1.4.0';
+import { initLetterFields, initNavigation, initPageMotion } from './motion.js?v=1.7.0';
+import { initStory } from './story.js?v=1.5.0';
 import { initInquiry } from './inquiry.js?v=1.2.0';
 import { formConfig } from './contact-config.js?v=2.5.2';
 import { copy, languages, projects, contact, atlas } from './content.js?v=1.9.0';
@@ -432,7 +432,11 @@ function init() {
     });
   });
   const cursor = $('#cursor');
-  if (cursor) cursor.hidden = !motion;
+  if (cursor) {
+    cursor.hidden = !motion;
+    // Stay hidden until the pointer first moves, instead of waiting in the middle of the page.
+    cursor.classList.add('out');
+  }
   let mx = innerWidth / 2,
     my = innerHeight / 2,
     cx = mx,
@@ -440,15 +444,23 @@ function init() {
     targetX = 0,
     targetY = 0,
     hx = 0,
-    hy = 0;
+    hy = 0,
+    cursorSeen = false;
   const hero = $('.hero-art');
   on(window, 'pointermove', (e) => {
     mx = e.clientX;
     my = e.clientY;
-    const target = e.target.closest('[data-cursor]');
+    const target = e.target.closest('[data-cursor]'),
+      label = target?.dataset.cursor || '';
     if (cursor) {
+      if (e.pointerType === 'mouse' && !cursorSeen) {
+        cursorSeen = true;
+        cx = mx;
+        cy = my;
+        cursor.classList.remove('out');
+      }
       cursor.classList.toggle('large', !!target);
-      cursor.textContent = target?.dataset.cursor || '';
+      if (cursor.textContent !== label) cursor.textContent = label;
     }
     if (hero) {
       const r = hero.getBoundingClientRect();
@@ -462,31 +474,52 @@ function init() {
     practiceImg = $('.practice-image img'),
     heroImg = $('.hero-image');
   let progress = $('#scroll-progress');
+  // Write styles only when a value changes; idle frames should cost nothing.
+  let lastCursor = '',
+    lastHero = '',
+    lastPractice = '',
+    lastProgress = '',
+    scrollRange = 0;
+  const measureRange = () => (scrollRange = document.documentElement.scrollHeight - innerHeight);
+  const rangeObserver = new ResizeObserver(measureRange);
+  rangeObserver.observe(document.body);
+  observers.push(rangeObserver);
+  on(window, 'resize', measureRange);
+  const opticalCanvas = hero && $('.hero-canvas', hero);
   function tick() {
     if (motion) {
       cx += (mx - cx) * 0.16;
       cy += (my - cy) * 0.16;
-      if (cursor) cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
+      const cursorTransform = `translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0)`;
+      if (cursor && cursorTransform !== lastCursor)
+        cursor.style.transform = lastCursor = cursorTransform;
       hx += (targetX - hx) * 0.045;
       hy += (targetY - hy) * 0.045;
       if (heroImg) {
         const r = hero.getBoundingClientRect();
-        const imageTransform = `translate3d(${hx * -14}px,${hy * -10 + Math.max(0, -r.top) * 0.12}px,0) scale(1.12)`;
-        heroImg.style.transform = imageTransform;
-        const opticalCanvas = $('.hero-canvas', hero);
-        if (opticalCanvas) opticalCanvas.style.transform = imageTransform;
+        if (r.bottom > 0 && r.top < innerHeight) {
+          const imageTransform = `translate3d(${(hx * -14).toFixed(2)}px,${(hy * -10 + Math.max(0, -r.top) * 0.12).toFixed(2)}px,0) scale(1.12)`;
+          if (imageTransform !== lastHero) {
+            heroImg.style.transform = lastHero = imageTransform;
+            if (opticalCanvas) opticalCanvas.style.transform = imageTransform;
+          }
+        }
       }
       if (sticky && practiceImg) {
         const r = sticky.getBoundingClientRect();
-        practiceImg.style.transform = `scale(${1.12 - Math.max(0, Math.min(1, (innerHeight - r.top) / (r.height + innerHeight))) * 0.12})`;
+        const practiceTransform = `scale(${(1.12 - Math.max(0, Math.min(1, (innerHeight - r.top) / (r.height + innerHeight))) * 0.12).toFixed(4)})`;
+        if (practiceTransform !== lastPractice)
+          practiceImg.style.transform = lastPractice = practiceTransform;
       }
     }
     if (progress) {
-      const h = document.documentElement.scrollHeight - innerHeight;
-      progress.style.transform = `scaleX(${h > 0 ? scrollY / h : 0})`;
+      const progressTransform = `scaleX(${scrollRange > 0 ? (scrollY / scrollRange).toFixed(4) : 0})`;
+      if (progressTransform !== lastProgress)
+        progress.style.transform = lastProgress = progressTransform;
     }
     raf = requestAnimationFrame(tick);
   }
+  measureRange();
   tick();
   if (hero) glStop = initHeroOptics({ canvas: $('.hero-canvas'), img: heroImg, motion, on });
   const intro = $('.hero-title');
@@ -584,28 +617,34 @@ function initGlassSurface(stage, on) {
       update(-1);
     }
   });
+  let visible = false;
+  const observer = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    texture?.setVisible(visible);
+    if (visible && !raf && motion) raf = requestAnimationFrame(tick);
+  });
+  observer.observe(stage);
   function tick() {
-    if (!alive) return;
+    raf = 0;
+    if (!alive || !visible) return;
     if (motion && !document.hidden) {
       const r = stage.getBoundingClientRect();
-      if (r.bottom > 0 && r.top < innerHeight) {
-        x += (tx - x) * 0.055;
-        y += (ty - y) * 0.055;
-        const scroll = Math.max(
-          -1,
-          Math.min(1, (innerHeight / 2 - r.top - r.height / 2) / innerHeight),
-        );
-        stage.style.setProperty('--glass-x', x.toFixed(4));
-        stage.style.setProperty('--glass-y', y.toFixed(4));
-        stage.style.setProperty('--glass-scroll', scroll.toFixed(4));
-        texture?.setPointer(x, y, scroll);
-      }
+      x += (tx - x) * 0.055;
+      y += (ty - y) * 0.055;
+      const scroll = Math.max(
+        -1,
+        Math.min(1, (innerHeight / 2 - r.top - r.height / 2) / innerHeight),
+      );
+      stage.style.setProperty('--glass-x', x.toFixed(4));
+      stage.style.setProperty('--glass-y', y.toFixed(4));
+      stage.style.setProperty('--glass-scroll', scroll.toFixed(4));
+      texture?.setPointer(x, y, scroll);
     }
     raf = requestAnimationFrame(tick);
   }
-  if (motion) tick();
   return () => {
     alive = false;
+    observer.disconnect();
     cancelAnimationFrame(raf);
     texture?.destroy();
   };
@@ -623,19 +662,20 @@ function createFrostTexture(canvas, name) {
   }
   if (!gl) return null;
   const vs = 'attribute vec2 a;varying vec2 uv;void main(){uv=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
-  const fs = `precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform vec2 size;uniform vec2 photo;uniform vec2 pointer;uniform float clock;uniform float scroll;
+  const fs = `precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform vec2 size;uniform vec2 photo;uniform vec2 pointer;uniform float clock;uniform float scroll;uniform float density;
  float noise(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
  void main(){vec2 p=vec2(uv.x,1.-uv.y);float r=size.x/size.y;float ir=photo.x/photo.y;vec2 cover=vec2(min(r/ir,1.),min(ir/r,1.));vec2 q=(p-.5)*cover*.82+.5;vec2 m=pointer*vec2(.035,.025);q+=m+vec2(0.,scroll*.035);
  float wave=sin(p.y*7.+clock*.2+p.x*5.)*.007;float ribs=sin(p.x*size.x*.24+wave*60.);q.x+=ribs*.0025+wave;q.y+=cos(p.x*7.+clock*.14)*.008;
  vec2 blur=vec2(.010,.013);vec3 c=texture2D(tex,q).rgb*.2;
  c+=texture2D(tex,q+vec2(blur.x,0.)).rgb*.1;c+=texture2D(tex,q-vec2(blur.x,0.)).rgb*.1;c+=texture2D(tex,q+vec2(0.,blur.y)).rgb*.1;c+=texture2D(tex,q-vec2(0.,blur.y)).rgb*.1;
  c+=texture2D(tex,q+blur).rgb*.1;c+=texture2D(tex,q-blur).rgb*.1;c+=texture2D(tex,q+vec2(blur.x,-blur.y)).rgb*.1;c+=texture2D(tex,q+vec2(-blur.x,blur.y)).rgb*.1;
- vec2 cell=fract(gl_FragCoord.xy/4.4)-.5;float pebble=(1.-smoothstep(.12,.49,length(cell)));c+=vec3((pebble-.5)*.075+ribs*.018);c+=vec3((noise(gl_FragCoord.xy)-.5)*.036);c=mix(c,vec3(.88,.9,.94),.045);gl_FragColor=vec4(c,1.);}`;
+ vec2 cell=fract(gl_FragCoord.xy/(4.4*density))-.5;float pebble=(1.-smoothstep(.12,.49,length(cell)));c+=vec3((pebble-.5)*.075+ribs*.018);c+=vec3((noise(gl_FragCoord.xy)-.5)*.036);c=mix(c,vec3(.88,.9,.94),.045);gl_FragColor=vec4(c,1.);}`;
   let program,
     buffer,
     texture,
     ready = false,
     active = true,
+    visible = false,
     id = 0,
     clock = 0,
     pointer = [0, 0],
@@ -672,7 +712,7 @@ function createFrostTexture(canvas, name) {
     return null;
   }
   const u = Object.fromEntries(
-    ['size', 'photo', 'pointer', 'clock', 'scroll'].map((n) => [
+    ['size', 'photo', 'pointer', 'clock', 'scroll', 'density'].map((n) => [
       n,
       gl.getUniformLocation(program, n),
     ]),
@@ -698,18 +738,14 @@ function createFrostTexture(canvas, name) {
       },
     });
   }
+  // The surface is blurred and grained, so it renders at reduced resolution and is upscaled.
+  const density = 0.6;
   function draw() {
-    if (!active) return;
-    const rect = canvas.getBoundingClientRect();
-    if (
-      ready &&
-      !document.hidden &&
-      rect.bottom > 0 &&
-      rect.top < innerHeight &&
-      !canvas.closest('.is-clear')
-    ) {
-      const w = Math.round(rect.width * Math.min(devicePixelRatio, 1.25)),
-        h = Math.round(rect.height * Math.min(devicePixelRatio, 1.25));
+    id = 0;
+    if (!active || !visible) return;
+    if (ready && !document.hidden && !canvas.closest('.is-clear')) {
+      const w = Math.round(canvas.clientWidth * density),
+        h = Math.round(canvas.clientHeight * density);
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -721,14 +757,18 @@ function createFrostTexture(canvas, name) {
       gl.uniform2f(u.pointer, ...pointer);
       gl.uniform1f(u.clock, clock);
       gl.uniform1f(u.scroll, scroll);
+      gl.uniform1f(u.density, density);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
     id = requestAnimationFrame(draw);
   }
   setSource(name);
-  draw();
   return {
     setSource,
+    setVisible(value) {
+      visible = value;
+      if (visible && !id) id = requestAnimationFrame(draw);
+    },
     setPointer(x, y, s) {
       pointer = [x, y];
       scroll = s;
