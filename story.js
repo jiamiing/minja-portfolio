@@ -29,8 +29,7 @@ export function initStory({motion,on}){
     if(front){px=mix(px,(i-1)*33.4,triptych);py=mix(py,0,triptych);rotate=mix(rotate,0,triptych);width=mix(width,33.6,triptych);height=mix(height,84,triptych);if(i===1){width=mix(width,100,takeover);height=mix(height,100,takeover)}else{px+=Math.sign(i-1)*takeover*80}}
     panel.style.width=width+'vw';panel.style.height=height+'vh';panel.style.transform=`translate3d(calc(-50% + ${px}vw),calc(-50% + ${py}vh),0) perspective(1200px) rotateY(${(1-arrive)*(i%2?25:-25)}deg) rotate(${rotate}deg)`;panel.style.opacity=arrive*(front?1:1-triptych);panel.style.clipPath=`inset(${(1-arrive)*100}% 0 0 0)`;panel.querySelector('img').style.transform=`scale(${mix(1.2,1.02,arrive)}) translateY(${-p*3}%)`;
    });
-   const type=el.querySelector('.signal-type');type.style.transform=`translateY(${mix(8,-21,triptych)+takeover*8}vh) scale(${mix(1,.7,triptych)})`;type.style.opacity=(.7+.3*range(p,0,.12))*(1-range(p,.9,1));
-   const echo=el.querySelector('.signal-type-echo');echo.style.transform=`translate(${triptych*7}vw,${triptych*5}vh)`;echo.style.opacity=Math.sin(triptych*Math.PI)*.35;
+   const type=el.querySelector('.signal-type');type.style.transform=`translateY(${mix(8,-13,triptych)+takeover*8}vh) scale(${mix(1,.7,triptych)})`;type.style.opacity=(.7+.3*range(p,0,.12))*(1-range(p,.9,1));
    el.querySelector('.signal-copy').style.opacity=range(p,.48,.65);el.querySelector('.signal-copy').style.transform=`translateY(${mix(8,0,ease(range(p,.48,.78)))}vh)`;
    el.querySelector('.signal-state').textContent=`0${p<.36?1:p<.67?2:3} / 03`;el.querySelector('.signal-meter i').style.transform=`scaleX(${p})`;
    el.style.setProperty('--signal-open',assemble);
