@@ -2,7 +2,7 @@ import { signatureMarkup, initSignature } from './signature.js?v=2.6.0';
 import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.0.1';
 import { initProtection } from './protection.js?v=2.0.0';
 import { initPanorama } from './panorama.js?v=2.1.0';
-import { initHeroOptics } from './hero-optics.js?v=2.1.0';
+import { initHeroOptics } from './hero-optics.js?v=2.2.0';
 import { icon } from './icons.js?v=1.6.1';
 import { logoSvg } from './logo-geometry.js?v=1.3.1';
 import { initArchive } from './archive.js?v=1.6.0';
@@ -486,15 +486,21 @@ function init() {
   observers.push(rangeObserver);
   on(window, 'resize', measureRange);
   const opticalCanvas = hero && $('.hero-canvas', hero);
-  function tick() {
+  let lastTick = 0;
+  function tick(now = performance.now()) {
+    // Time-based easing: per-frame factors lagged further whenever the frame rate dropped.
+    const dt = Math.min(0.05, (now - lastTick) / 1000 || 1 / 60);
+    lastTick = now;
     if (motion) {
-      cx += (mx - cx) * 0.16;
-      cy += (my - cy) * 0.16;
+      const follow = 1 - Math.exp(-dt * 30),
+        drift = 1 - Math.exp(-dt * 7);
+      cx += (mx - cx) * follow;
+      cy += (my - cy) * follow;
       const cursorTransform = `translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0)`;
       if (cursor && cursorTransform !== lastCursor)
         cursor.style.transform = lastCursor = cursorTransform;
-      hx += (targetX - hx) * 0.045;
-      hy += (targetY - hy) * 0.045;
+      hx += (targetX - hx) * drift;
+      hy += (targetY - hy) * drift;
       if (heroImg) {
         const r = hero.getBoundingClientRect();
         if (r.bottom > 0 && r.top < innerHeight) {
