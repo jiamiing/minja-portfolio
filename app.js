@@ -1,146 +1,629 @@
-import {signatureMarkup,initSignature} from './signature.js?v=2.5.0';
-import {preview,initImages,setProgressiveImage,progressiveTexture} from './images.js?v=2.0.1';
-import {initProtection} from './protection.js?v=2.0.0';
-import {initPanorama} from './panorama.js?v=2.0.1';
-import {initHeroOptics} from './hero-optics.js?v=2.0.0';
-import {icon} from './icons.js?v=1.6.1';
-import {logoSvg} from './logo-geometry.js?v=1.3.1';
-import {initArchive} from './archive.js?v=1.6.0';
-import {initIdentity} from './identity.js?v=2.0.1';
-import {initLetterFields,initNavigation,initPageMotion} from './motion.js?v=1.6.0';
-import {initStory} from './story.js?v=1.4.0';
-import {initInquiry} from './inquiry.js?v=1.2.0';
-import {formConfig} from './contact-config.js?v=2.5.2';
-import {copy,languages,projects,contact,atlas} from './content.js?v=1.9.0';
-import {media} from './media.js?v=1.2.0';
-const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
-const root=$('#app'), base=new URL('.',import.meta.url);
-$('link[rel="icon"]').href=new URL('favicon.svg',base).href;
-const url=(path='')=>{const u=new URL(path,base);return u.pathname+u.search};
-const asset=(name)=>new URL(`assets/${name}.webp?v=1.2.0`,base).href;
-const storage={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
-let lang=new URLSearchParams(location.search).get('lang')||storage.get('minja-language')||'en';if(!copy[lang])lang='en';
-let motion=storage.get('minja-motion')?storage.get('minja-motion')==='on':!matchMedia('(prefers-reduced-motion: reduce)').matches;
-let t=copy[lang], cleanup=()=>{}, current='', navigating=false;
-const a=(p,label,cl='')=>`<a class="${cl}" href="${url(p)}" data-nav>${label}</a>`;
-const arrow=`<span class="direction-mark" aria-hidden="true">${icon('arrow-up-right')}</span>`;
-function image(name,alt='',cls='',priority=false,sizes='(max-width: 700px) 100vw, 90vw'){
- const m=media[name];if(!m)throw new Error(`Unknown artwork: ${name}`);
- return `<img class="${cls}" src="${preview(name)}" data-image-name="${name}" data-image-state="preview" data-full-src="${asset(name+'-sm')}" data-full-srcset="${asset(name+'-sm')} ${m.smallWidth}w, ${asset(name)} ${m.width}w" data-full-sizes="${sizes}" data-priority="${priority?'high':'auto'}" width="${m.width}" height="${m.height}" alt="${alt}" draggable="false" decoding="async" loading="${priority?'eager':'lazy'}" fetchpriority="${priority?'high':'auto'}">`;
+import { signatureMarkup, initSignature } from './signature.js?v=2.5.0';
+import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.0.1';
+import { initProtection } from './protection.js?v=2.0.0';
+import { initPanorama } from './panorama.js?v=2.0.1';
+import { initHeroOptics } from './hero-optics.js?v=2.0.0';
+import { icon } from './icons.js?v=1.6.1';
+import { logoSvg } from './logo-geometry.js?v=1.3.1';
+import { initArchive } from './archive.js?v=1.6.0';
+import { initIdentity } from './identity.js?v=2.0.1';
+import { initLetterFields, initNavigation, initPageMotion } from './motion.js?v=1.6.0';
+import { initStory } from './story.js?v=1.4.0';
+import { initInquiry } from './inquiry.js?v=1.2.0';
+import { formConfig } from './contact-config.js?v=2.5.2';
+import { copy, languages, projects, contact, atlas } from './content.js?v=1.9.0';
+import { media } from './media.js?v=1.2.0';
+const $ = (s, r = document) => r.querySelector(s),
+  $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const root = $('#app'),
+  base = new URL('.', import.meta.url);
+$('link[rel="icon"]').href = new URL('favicon.svg', base).href;
+const url = (path = '') => {
+  const u = new URL(path, base);
+  return u.pathname + u.search;
+};
+const asset = (name) => new URL(`assets/${name}.webp?v=1.2.0`, base).href;
+const storage = {
+  get(k) {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  set(k, v) {
+    try {
+      localStorage.setItem(k, v);
+    } catch {}
+  },
+};
+let lang =
+  new URLSearchParams(location.search).get('lang') || storage.get('minja-language') || 'en';
+if (!copy[lang]) lang = 'en';
+let motion = storage.get('minja-motion')
+  ? storage.get('minja-motion') === 'on'
+  : !matchMedia('(prefers-reduced-motion: reduce)').matches;
+let t = copy[lang],
+  cleanup = () => {},
+  current = '',
+  navigating = false;
+const a = (p, label, cl = '') => `<a class="${cl}" href="${url(p)}" data-nav>${label}</a>`;
+const arrow = `<span class="direction-mark" aria-hidden="true">${icon('arrow-up-right')}</span>`;
+function image(
+  name,
+  alt = '',
+  cls = '',
+  priority = false,
+  sizes = '(max-width: 700px) 100vw, 90vw',
+) {
+  const m = media[name];
+  if (!m) throw new Error(`Unknown artwork: ${name}`);
+  return `<img class="${cls}" src="${preview(name)}" data-image-name="${name}" data-image-state="preview" data-full-src="${asset(name + '-sm')}" data-full-srcset="${asset(name + '-sm')} ${m.smallWidth}w, ${asset(name)} ${m.width}w" data-full-sizes="${sizes}" data-priority="${priority ? 'high' : 'auto'}" width="${m.width}" height="${m.height}" alt="${alt}" draggable="false" decoding="async" loading="${priority ? 'eager' : 'lazy'}" fetchpriority="${priority ? 'high' : 'auto'}">`;
 }
-function frame(name,cls='',priority=false){const m=media[name];return `<button class="art-frame ${cls}" style="--image-ratio:${m.width/m.height}" data-lightbox="${name}" aria-label="${t.enlarge}">${image(name,'MINJA — '+name.replaceAll('-',' '),'',priority)}<span class="image-plus" aria-hidden="true">${icon('plus')}</span></button>`;}
-const wordmark=logoSvg;
-function header(){
- const items=[['',t.home,'hero'],['work/',t.work,'eastern-a'],['collaborations/',t.collab,'live-c'],['note/',t.note,'about'],['contact/',t.contact,'nature-eye']];
- const navLink=([path,label])=>`<a href="${url(path)}" data-nav aria-label="${label}"><span class="nav-roll"><span>${label}</span><span aria-hidden="true">${label}</span></span></a>`;
- return `<a class="skip" href="#main">${t.work}</a><header class="site-header"><a href="${url()}" class="brand" data-nav aria-label="MINJA — ${t.home}">${wordmark()}</a><nav class="desktop-nav" aria-label="${t.menu}"><span class="nav-slider" aria-hidden="true"></span>${items.slice(1).map(navLink).join('')}</nav><div class="header-tools"><div class="lang-wrap"><button id="language-toggle" class="text-button" aria-expanded="false" aria-controls="language-menu">${languages[lang]} <span>${icon('chevron-down')}</span></button><div id="language-menu" class="lang-menu" hidden>${Object.entries(languages).map(([k,v])=>`<button data-lang="${k}" lang="${k}" aria-pressed="${lang===k}">${v}<span>${icon(k===lang?'dot':'arrow-up-right')}</span></button>`).join('')}</div></div><button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="nav-overlay" aria-label="${t.menu}"><span></span><span></span><i aria-hidden="true"></i></button></div></header><div id="nav-overlay" class="nav-overlay" hidden><div class="nav-kicker micro">MINJA / ${t.index}</div><div class="menu-layout"><nav>${items.map(([p,label],i)=>`<div class="menu-row"><a href="${url(p)}" data-nav data-menu-target="${i}" class="menu-line"><small>0${i+1}</small><span>${label}</span><i>${icon('arrow-up-right')}</i></a></div>`).join('')}</nav><div class="menu-preview" aria-hidden="true">${items.map(([p,label,img],i)=>`<div data-menu-frame="${i}" class="${i===0?'active':''}">${image(img,'')}</div>`).join('')}<span class="menu-preview-line"></span></div></div><div class="menu-bottom micro"><span>${t.source}</span><span>MINJA © 2026</span></div></div>`;
+function frame(name, cls = '', priority = false) {
+  const m = media[name];
+  return `<button class="art-frame ${cls}" style="--image-ratio:${m.width / m.height}" data-lightbox="${name}" aria-label="${t.enlarge}">${image(name, 'MINJA — ' + name.replaceAll('-', ' '), '', priority)}<span class="image-plus" aria-hidden="true">${icon('plus')}</span></button>`;
+}
+const wordmark = logoSvg;
+function header() {
+  const items = [
+    ['', t.home, 'hero'],
+    ['work/', t.work, 'eastern-a'],
+    ['collaborations/', t.collab, 'live-c'],
+    ['note/', t.note, 'about'],
+    ['contact/', t.contact, 'nature-eye'],
+  ];
+  const navLink = ([path, label]) =>
+    `<a href="${url(path)}" data-nav aria-label="${label}"><span class="nav-roll"><span>${label}</span><span aria-hidden="true">${label}</span></span></a>`;
+  return `<a class="skip" href="#main">${t.work}</a><header class="site-header"><a href="${url()}" class="brand" data-nav aria-label="MINJA — ${t.home}">${wordmark()}</a><nav class="desktop-nav" aria-label="${t.menu}"><span class="nav-slider" aria-hidden="true"></span>${items.slice(1).map(navLink).join('')}</nav><div class="header-tools"><div class="lang-wrap"><button id="language-toggle" class="text-button" aria-expanded="false" aria-controls="language-menu">${languages[lang]} <span>${icon('chevron-down')}</span></button><div id="language-menu" class="lang-menu" hidden>${Object.entries(
+    languages,
+  )
+    .map(
+      ([k, v]) =>
+        `<button data-lang="${k}" lang="${k}" aria-pressed="${lang === k}">${v}<span>${icon(k === lang ? 'dot' : 'arrow-up-right')}</span></button>`,
+    )
+    .join(
+      '',
+    )}</div></div><button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="nav-overlay" aria-label="${t.menu}"><span></span><span></span><i aria-hidden="true"></i></button></div></header><div id="nav-overlay" class="nav-overlay" hidden><div class="nav-kicker micro">MINJA / ${t.index}</div><div class="menu-layout"><nav>${items.map(([p, label], i) => `<div class="menu-row"><a href="${url(p)}" data-nav data-menu-target="${i}" class="menu-line"><small>0${i + 1}</small><span>${label}</span><i>${icon('arrow-up-right')}</i></a></div>`).join('')}</nav><div class="menu-preview" aria-hidden="true">${items.map(([p, label, img], i) => `<div data-menu-frame="${i}" class="${i === 0 ? 'active' : ''}">${image(img, '')}</div>`).join('')}<span class="menu-preview-line"></span></div></div><div class="menu-bottom micro"><span>${t.source}</span><span>MINJA © 2026</span></div></div>`;
 }
 
-function footer(){return `<footer class="play-footer"><div class="footer-play-grid"><div class="footer-invitation"><span class="micro">${t.inquiries}</span>${a('contact/',`${t.contact} ${arrow}`,'footer-cta')}<a href="${url()}" data-nav class="footer-signature" aria-label="MINJA — ${t.home}">${wordmark()}</a></div><section class="image-endnote" id="identity-toy" data-images="eastern-jewel,eastern-coral,eastern-feather" aria-label="${t.toyTitle}"><div class="portal-heading"><button class="portal-reset" data-toy-reset aria-label="${t.toyReset}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 6a6 6 0 1 1-1 6M5 2v5H1"/></svg></button></div><button class="portal-object" aria-pressed="false" aria-keyshortcuts="ArrowLeft ArrowRight Space Enter Escape" aria-label="${t.toyInteract}"><span class="portal-backup" aria-hidden="true">${image('eastern-jewel','','',false,'(max-width:700px) 70vw, 32vw')}</span><canvas aria-hidden="true"></canvas><span class="portal-corner portal-corner-a" aria-hidden="true"></span><span class="portal-corner portal-corner-b" aria-hidden="true"></span></button><div class="portal-caption"><span class="portal-count sr-only" aria-live="polite">01 / 03</span><div class="portal-navigation"><button data-portal-prev aria-label="${t.prev}">${icon('arrow-left')}</button><button data-portal-next aria-label="${t.nextImage}">${icon('arrow-right')}</button></div></div></section></div><div class="footer-bottom micro"><span>${t.rights}</span><span>${t.theme}</span><button id="motion-toggle" class="text-button">${t.motion}: ${motion?t.on:t.off}</button><button id="top-button" class="text-button">${t.top} ${icon('arrow-up')}</button></div></footer>`;}
-function card(p,i){return `<article class="work-card" data-type="${p.type}" data-project="${p.id}" data-slot="${i}"><div class="archive-card-top micro"><span>${t[p.type]}</span><span>${p.n}</span></div><a href="${url('work/'+p.id+'/')}" data-nav class="work-image" data-cursor="${t.view}" aria-label="${p.title[lang]} — ${t.view}"><div class="archive-image-main">${image(p.image,p.title[lang],'',i===0)}</div><div class="archive-image-alt" aria-hidden="true">${image(p.gallery[0],'')}</div><span class="archive-image-glass" aria-hidden="true"></span><span class="archive-image-open" aria-hidden="true">${icon('arrow-up-right')}</span></a><div class="card-caption"><div><h2>${a('work/'+p.id+'/',p.title[lang])}</h2><p>${p.subtitle[lang]}</p></div></div></article>`;}
-function glassSurface(names,variant=''){
- const name=names[0];return `<div class="glass-surface ${variant}" ${variant==='home-glass'?'id="glass"':''} data-glass-images="${names.join(',')}" data-glass-index="0"><div class="glass-background" aria-hidden="true">${image(name,'')}</div><canvas class="glass-texture" aria-hidden="true"></canvas><div class="glass-ribbed" aria-hidden="true"></div><div class="glass-specular" aria-hidden="true"></div><div class="glass-topline micro"><span>${t.glassView}</span><span class="glass-counter" aria-live="polite">01 / ${String(names.length).padStart(2,'0')}</span></div>${frame(name,'glass-art')}<div class="glass-bottomline"><span class="micro glass-hint">${t.glassHint}</span><div class="glass-controls"><button data-glass-toggle aria-pressed="true">${t.glass}</button><button data-glass-prev aria-label="${t.previousWork}">${icon('arrow-left')}</button><button data-glass-next aria-label="${t.nextWork}">${icon('arrow-right')}</button></div></div></div>`;
+function footer() {
+  return `<footer class="play-footer"><div class="footer-play-grid"><div class="footer-invitation"><span class="micro">${t.inquiries}</span>${a('contact/', `${t.contact} ${arrow}`, 'footer-cta')}<a href="${url()}" data-nav class="footer-signature" aria-label="MINJA — ${t.home}">${wordmark()}</a></div><section class="image-endnote" id="identity-toy" data-images="eastern-jewel,eastern-coral,eastern-feather" aria-label="${t.toyTitle}"><div class="portal-heading"><button class="portal-reset" data-toy-reset aria-label="${t.toyReset}"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 6a6 6 0 1 1-1 6M5 2v5H1"/></svg></button></div><button class="portal-object" aria-pressed="false" aria-keyshortcuts="ArrowLeft ArrowRight Space Enter Escape" aria-label="${t.toyInteract}"><span class="portal-backup" aria-hidden="true">${image('eastern-jewel', '', '', false, '(max-width:700px) 70vw, 32vw')}</span><canvas aria-hidden="true"></canvas><span class="portal-corner portal-corner-a" aria-hidden="true"></span><span class="portal-corner portal-corner-b" aria-hidden="true"></span></button><div class="portal-caption"><span class="portal-count sr-only" aria-live="polite">01 / 03</span><div class="portal-navigation"><button data-portal-prev aria-label="${t.prev}">${icon('arrow-left')}</button><button data-portal-next aria-label="${t.nextImage}">${icon('arrow-right')}</button></div></div></section></div><div class="footer-bottom micro"><span>${t.rights}</span><span>${t.theme}</span><button id="motion-toggle" class="text-button">${t.motion}: ${motion ? t.on : t.off}</button><button id="top-button" class="text-button">${t.top} ${icon('arrow-up')}</button></div></footer>`;
+}
+function card(p, i) {
+  return `<article class="work-card" data-type="${p.type}" data-project="${p.id}" data-slot="${i}"><div class="archive-card-top micro"><span>${t[p.type]}</span><span>${p.n}</span></div><a href="${url('work/' + p.id + '/')}" data-nav class="work-image" data-cursor="${t.view}" aria-label="${p.title[lang]} — ${t.view}"><div class="archive-image-main">${image(p.image, p.title[lang], '', i === 0)}</div><div class="archive-image-alt" aria-hidden="true">${image(p.gallery[0], '')}</div><span class="archive-image-glass" aria-hidden="true"></span><span class="archive-image-open" aria-hidden="true">${icon('arrow-up-right')}</span></a><div class="card-caption"><div><h2>${a('work/' + p.id + '/', p.title[lang])}</h2><p>${p.subtitle[lang]}</p></div></div></article>`;
+}
+function glassSurface(names, variant = '') {
+  const name = names[0];
+  return `<div class="glass-surface ${variant}" ${variant === 'home-glass' ? 'id="glass"' : ''} data-glass-images="${names.join(',')}" data-glass-index="0"><div class="glass-background" aria-hidden="true">${image(name, '')}</div><canvas class="glass-texture" aria-hidden="true"></canvas><div class="glass-ribbed" aria-hidden="true"></div><div class="glass-specular" aria-hidden="true"></div><div class="glass-topline micro"><span>${t.glassView}</span><span class="glass-counter" aria-live="polite">01 / ${String(names.length).padStart(2, '0')}</span></div>${frame(name, 'glass-art')}<div class="glass-bottomline"><span class="micro glass-hint">${t.glassHint}</span><div class="glass-controls"><button data-glass-toggle aria-pressed="true">${t.glass}</button><button data-glass-prev aria-label="${t.previousWork}">${icon('arrow-left')}</button><button data-glass-next aria-label="${t.nextWork}">${icon('arrow-right')}</button></div></div></div>`;
 }
 
-function atlasCard(item,i){const p=projects.find(p=>p.id===item.projectId),m=media[item.image];return `<figure class="atlas-card reveal" data-type="${item.type}">${frame(item.image)}<figcaption><span>${String(i+1).padStart(2,'0')}</span><span>${p.title[lang]}</span></figcaption></figure>`;}
+function atlasCard(item, i) {
+  const p = projects.find((p) => p.id === item.projectId),
+    m = media[item.image];
+  return `<figure class="atlas-card reveal" data-type="${item.type}">${frame(item.image)}<figcaption><span>${String(i + 1).padStart(2, '0')}</span><span>${p.title[lang]}</span></figcaption></figure>`;
+}
 
-function statementScene(){const panels=['eastern-a','live-cathedral','rage-a','eastern-feather','future-b','3d-c'];return `<section class="story-track signal-track" id="practice" data-scene="statement"><div class="story-pin signal-pin"><div class="signal-rule signal-rule-a" aria-hidden="true"></div><div class="signal-rule signal-rule-b" aria-hidden="true"></div><span class="micro signal-kicker">01 / ${t.about}</span><div class="signal-panels">${panels.map((name,i)=>`<div class="signal-panel signal-panel-${i}" data-signal-panel="${i}">${image(name,'MINJA — '+name.replaceAll('-',' '))}<span class="micro">${String(i+1).padStart(2,'0')} / MINJA</span></div>`).join('')}</div><div class="signal-type"><h2>${t.soundVisible}</h2></div><div class="signal-copy"><p>${t.intro}</p><p>${t.introSub}</p></div><div class="signal-bottom micro"><span>${t.source}</span><span class="signal-state">01 / 03</span></div><div class="signal-meter" aria-hidden="true"><i></i></div></div></section>`;}
-function home(){
- const sceneData=[
-  {title:t.easternScene,tag:t.visual,photo:'eastern-c',detail:'eastern-silver',id:'eastern-aesthetics'},
-  {title:t.liveScene,tag:t.live,photo:'live-b',detail:'3d-c',id:'live-visual'},
-  {title:t.futureScene,tag:t.visual,photo:'future',detail:'future-b',id:'future-form'}
- ];
- const collage=['eastern-coral','eastern-jewel','eastern-orb','group-world','shell','live-cathedral','3d-veins','eastern-feather'];
- return `<main id="main" class="story-home">
- <nav class="chapter-nav" aria-label="${t.chapters}">${[['opening',t.home],['practice',t.about],['worlds',t.visual],['selected',t.work],['glass',t.glass],['atlas',t.atlas]].map(([id,label],i)=>`<a href="#${id}" data-chapter="${id}" aria-label="${label}"><span>0${i+1}</span><b>${label}</b><i></i></a>`).join('')}</nav>
+function statementScene() {
+  const panels = ['eastern-a', 'live-cathedral', 'rage-a', 'eastern-feather', 'future-b', '3d-c'];
+  return `<section class="story-track signal-track" id="practice" data-scene="statement"><div class="story-pin signal-pin"><div class="signal-rule signal-rule-a" aria-hidden="true"></div><div class="signal-rule signal-rule-b" aria-hidden="true"></div><span class="micro signal-kicker">01 / ${t.about}</span><div class="signal-panels">${panels.map((name, i) => `<div class="signal-panel signal-panel-${i}" data-signal-panel="${i}">${image(name, 'MINJA — ' + name.replaceAll('-', ' '))}<span class="micro">${String(i + 1).padStart(2, '0')} / MINJA</span></div>`).join('')}</div><div class="signal-type"><h2>${t.soundVisible}</h2></div><div class="signal-copy"><p>${t.intro}</p><p>${t.introSub}</p></div><div class="signal-bottom micro"><span>${t.source}</span><span class="signal-state">01 / 03</span></div><div class="signal-meter" aria-hidden="true"><i></i></div></div></section>`;
+}
+function home() {
+  const sceneData = [
+    {
+      title: t.easternScene,
+      tag: t.visual,
+      photo: 'eastern-c',
+      detail: 'eastern-silver',
+      id: 'eastern-aesthetics',
+    },
+    { title: t.liveScene, tag: t.live, photo: 'live-b', detail: '3d-c', id: 'live-visual' },
+    { title: t.futureScene, tag: t.visual, photo: 'future', detail: 'future-b', id: 'future-form' },
+  ];
+  const collage = [
+    'eastern-coral',
+    'eastern-jewel',
+    'eastern-orb',
+    'group-world',
+    'shell',
+    'live-cathedral',
+    '3d-veins',
+    'eastern-feather',
+  ];
+  return `<main id="main" class="story-home">
+ <nav class="chapter-nav" aria-label="${t.chapters}">${[
+   ['opening', t.home],
+   ['practice', t.about],
+   ['worlds', t.visual],
+   ['selected', t.work],
+   ['glass', t.glass],
+   ['atlas', t.atlas],
+ ]
+   .map(
+     ([id, label], i) =>
+       `<a href="#${id}" data-chapter="${id}" aria-label="${label}"><span>0${i + 1}</span><b>${label}</b><i></i></a>`,
+   )
+   .join('')}</nav>
  <section class="story-track opening-track" id="opening" data-scene="opening"><div class="story-pin opening-pin"><svg class="motion-defs" aria-hidden="true" focusable="false"><defs><filter id="hero-ink-warp" x="-15%" y="-20%" width="130%" height="140%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".012 .021" numOctaves="2" seed="7" result="ink-noise"/><feDisplacementMap id="ink-warp-scale" in="SourceGraphic" in2="ink-noise" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs></svg>
  <div class="opening-micro micro"><span>MINJA / ${t.portfolio}</span><span>${t.director}</span></div>
- <div class="hero-art opening-art"><a href="${url('work/')}" data-nav class="hero-image-link" aria-label="${t.explore}">${image('hero',t.heroSub,'hero-image',true)}<canvas class="hero-canvas" aria-hidden="true"></canvas></a><div class="hero-shade"></div></div>
- <div class="opening-type"><span class="micro">${t.source}</span><h1>${t.hero}</h1><div class="opening-bottom"><p>${t.heroSub}</p>${a('work/',`${t.explore} ${arrow}`,'underlined')}</div></div>
- <div class="opening-exit" aria-hidden="true"><span>MINJA</span><i>${t.soundVisible.replace(/([^\u3000-\u303f\uff00-\uffef])<br>/,'$1 ').replace('<br>','')}</i></div><div class="opening-scroll micro">${t.scroll} <span>${icon('arrow-down')}</span></div>
+ <div class="hero-art opening-art"><a href="${url('work/')}" data-nav class="hero-image-link" aria-label="${t.explore}">${image('hero', t.heroSub, 'hero-image', true)}<canvas class="hero-canvas" aria-hidden="true"></canvas></a><div class="hero-shade"></div></div>
+ <div class="opening-type"><span class="micro">${t.source}</span><h1>${t.hero}</h1><div class="opening-bottom"><p>${t.heroSub}</p>${a('work/', `${t.explore} ${arrow}`, 'underlined')}</div></div>
+ <div class="opening-exit" aria-hidden="true"><span>MINJA</span><i>${t.soundVisible.replace(/([^\u3000-\u303f\uff00-\uffef])<br>/, '$1 ').replace('<br>', '')}</i></div><div class="opening-scroll micro">${t.scroll} <span>${icon('arrow-down')}</span></div>
  </div></section>
  ${statementScene()}
- <section class="story-track world-track" id="worlds" data-scene="worlds"><div class="story-pin world-pin"><div class="world-scenes">${sceneData.map((s,i)=>`<article class="world-scene world-scene-${i}" data-world="${i}" ${i?'inert':''}><div class="world-photo">${image(s.photo,projects.find(p=>p.id===s.id).title[lang])}</div><div class="world-scrim"></div><div class="world-scene-meta micro"><span>MINJA / ${s.tag}</span><span>0${i+1} / 03</span></div><h2>${s.title}</h2><div class="world-detail">${image(s.detail,projects.find(p=>p.id===s.id).title[lang])}</div>${a('work/'+s.id+'/',`${t.view} ${arrow}`,'world-cta underlined')}</article>`).join('')}</div><div class="world-progress"><span class="micro">${t.worlds}</span><div>${sceneData.map((s,i)=>`<i data-world-dot="${i}"></i>`).join('')}</div><span class="micro world-count">01 / 03</span></div></div></section>
- <section class="story-track selected-track" id="selected" data-scene="rail"><div class="story-pin rail-pin"><div class="rail-heading"><span class="micro">02 / ${t.work}</span><h2>${t.selected.replace('<br>',' ')}</h2>${a('work/',`${t.openArchive} ${arrow}`,'underlined')}</div><div class="rail-window"><div class="cinema-rail">${projects.map((p,i)=>`<article class="rail-card" data-rail-card="${i}"><a href="${url('work/'+p.id+'/')}" data-nav class="rail-art" data-cursor="${t.view}">${image(p.image,p.title[lang])}<span class="rail-image-number">${p.n}</span><span class="rail-image-arrow">${icon('arrow-up-right')}</span></a><div class="rail-caption"><h3>${a('work/'+p.id+'/',p.title[lang])}</h3><span class="micro">${t[p.type]}</span></div></article>`).join('')}</div></div><div class="rail-meter micro"><span>${t.scrollThrough}</span><div><i></i></div><span class="rail-count">01 / 06</span></div></div></section>
- <section class="story-track glass-track" data-scene="glass"><div class="story-pin glass-pin"><div class="glass-scroll-heading"><span class="micro">03 / ${t.glassView}</span><h2>${t.glassTitle}</h2></div>${glassSurface(['live-b','eastern-jewel','future'],'home-glass')}<span class="glass-ghost-type" aria-hidden="true">${t.refraction}</span></div></section>
- <section class="story-track atlas-track" id="atlas" data-scene="collage"><div class="story-pin collage-pin"><div class="collage-heading"><span class="micro">04 / ${t.atlas}</span><h2>${t.atlasTitle}</h2></div><div class="photo-constellation">${collage.map((name,i)=>`<div class="constellation-photo constellation-${i}" data-collage="${i}">${frame(name)}<span class="micro">0${i+1} / ${projects.find(p=>[p.image,...p.gallery].includes(name))?.title[lang]||'MINJA'}</span></div>`).join('')}</div><div class="collage-bottom"><span class="micro">${t.sourceImages}</span>${a('work/?view=images',`${t.allFrames} ${arrow}`,'underlined')}</div></div></section>
- <section class="story-track outro-track" data-scene="outro"><div class="story-pin outro-pin"><div class="outro-art">${image('cover',t.contactLead)}</div><div class="outro-scrim"></div><div class="outro-copy"><span class="micro">05 / ${t.inquiries}</span><h2>${t.nextWorld}</h2>${a('contact/',`${t.contact} ${arrow}`,'outro-link')}</div><div class="outro-partners"><span class="micro">${t.partners}</span><p>LibTV · Updream · TapNow · Kling · MiniMax</p></div></div></section>
+ <section class="story-track world-track" id="worlds" data-scene="worlds"><div class="story-pin world-pin"><div class="world-scenes">${sceneData.map((s, i) => `<article class="world-scene world-scene-${i}" data-world="${i}" ${i ? 'inert' : ''}><div class="world-photo">${image(s.photo, projects.find((p) => p.id === s.id).title[lang])}</div><div class="world-scrim"></div><div class="world-scene-meta micro"><span>MINJA / ${s.tag}</span><span>0${i + 1} / 03</span></div><h2>${s.title}</h2><div class="world-detail">${image(s.detail, projects.find((p) => p.id === s.id).title[lang])}</div>${a('work/' + s.id + '/', `${t.view} ${arrow}`, 'world-cta underlined')}</article>`).join('')}</div><div class="world-progress"><span class="micro">${t.worlds}</span><div>${sceneData.map((s, i) => `<i data-world-dot="${i}"></i>`).join('')}</div><span class="micro world-count">01 / 03</span></div></div></section>
+ <section class="story-track selected-track" id="selected" data-scene="rail"><div class="story-pin rail-pin"><div class="rail-heading"><span class="micro">02 / ${t.work}</span><h2>${t.selected.replace('<br>', ' ')}</h2>${a('work/', `${t.openArchive} ${arrow}`, 'underlined')}</div><div class="rail-window"><div class="cinema-rail">${projects.map((p, i) => `<article class="rail-card" data-rail-card="${i}"><a href="${url('work/' + p.id + '/')}" data-nav class="rail-art" data-cursor="${t.view}">${image(p.image, p.title[lang])}<span class="rail-image-number">${p.n}</span><span class="rail-image-arrow">${icon('arrow-up-right')}</span></a><div class="rail-caption"><h3>${a('work/' + p.id + '/', p.title[lang])}</h3><span class="micro">${t[p.type]}</span></div></article>`).join('')}</div></div><div class="rail-meter micro"><span>${t.scrollThrough}</span><div><i></i></div><span class="rail-count">01 / 06</span></div></div></section>
+ <section class="story-track glass-track" data-scene="glass"><div class="story-pin glass-pin"><div class="glass-scroll-heading"><span class="micro">03 / ${t.glassView}</span><h2>${t.glassTitle}</h2></div>${glassSurface(['live-b', 'eastern-jewel', 'future'], 'home-glass')}<span class="glass-ghost-type" aria-hidden="true">${t.refraction}</span></div></section>
+ <section class="story-track atlas-track" id="atlas" data-scene="collage"><div class="story-pin collage-pin"><div class="collage-heading"><span class="micro">04 / ${t.atlas}</span><h2>${t.atlasTitle}</h2></div><div class="photo-constellation">${collage.map((name, i) => `<div class="constellation-photo constellation-${i}" data-collage="${i}">${frame(name)}<span class="micro">0${i + 1} / ${projects.find((p) => [p.image, ...p.gallery].includes(name))?.title[lang] || 'MINJA'}</span></div>`).join('')}</div><div class="collage-bottom"><span class="micro">${t.sourceImages}</span>${a('work/?view=images', `${t.allFrames} ${arrow}`, 'underlined')}</div></div></section>
+ <section class="story-track outro-track" data-scene="outro"><div class="story-pin outro-pin"><div class="outro-art">${image('cover', t.contactLead)}</div><div class="outro-scrim"></div><div class="outro-copy"><span class="micro">05 / ${t.inquiries}</span><h2>${t.nextWorld}</h2>${a('contact/', `${t.contact} ${arrow}`, 'outro-link')}</div><div class="outro-partners"><span class="micro">${t.partners}</span><p>LibTV · Updream · TapNow · Kling · MiniMax</p></div></div></section>
  </main>`;
 }
 
-function work(){
- const showFrames=new URLSearchParams(location.search).get('view')==='images';
- return `<main id="main" class="archive" data-archive-view="${showFrames?'images':'projects'}"><section class="archive-intro"><span class="micro archive-kicker">MINJA / ${t.work}</span><div class="archive-title"><h1>${showFrames?t.atlasTitle:t.selected}</h1></div><div class="archive-hero-stack" aria-hidden="true"><div class="archive-hero-fragment archive-fragment-a">${image('live-cathedral','')}</div><div class="archive-hero-fragment archive-fragment-b">${image('eastern-jewel','','',true)}<span class="archive-hero-glass"></span></div><div class="archive-hero-fragment archive-fragment-c">${image('eastern-feather','')}</div></div><div class="archive-bar"><p>${showFrames?t.atlasBody:t.heroSub}</p><a class="archive-enter micro" href="#collection">${t.scroll} <span aria-hidden="true">${icon('arrow-down')}</span></a></div><span class="archive-intro-rule" aria-hidden="true"></span></section><div class="archive-toolbar" id="collection"><div class="view-switch" role="group" aria-label="${t.index}"><button data-view="projects" aria-pressed="${!showFrames}" aria-controls="projects-view">${t.projects} <sup>06</sup></button><button data-view="images" aria-pressed="${showFrames}" aria-controls="images-view">${t.frames} <sup>49</sup></button></div><div class="filters" role="group" aria-label="${t.work}">${['all','visual','film','live'].map((v,i)=>`<button data-filter="${v}" class="filter ${i===0?'active':''}" aria-pressed="${i===0}">${t[v]} <sup>${(showFrames?atlas:projects).filter(p=>v==='all'||p.type===v).length}</sup></button>`).join('')}</div><span class="archive-reading-line" aria-hidden="true"></span><span class="archive-results sr-only" role="status"></span></div><section id="projects-view" class="work-grid archive-grid section-pad" data-count="6" ${showFrames?'hidden':''} aria-label="${t.projects}">${projects.map(card).join('')}</section><section id="images-view" class="atlas-grid section-pad" ${showFrames?'':'hidden'} aria-label="${t.atlas}">${atlas.map(atlasCard).join('')}</section></main>`;
+function work() {
+  const showFrames = new URLSearchParams(location.search).get('view') === 'images';
+  return `<main id="main" class="archive" data-archive-view="${showFrames ? 'images' : 'projects'}"><section class="archive-intro"><span class="micro archive-kicker">MINJA / ${t.work}</span><div class="archive-title"><h1>${showFrames ? t.atlasTitle : t.selected}</h1></div><div class="archive-hero-stack" aria-hidden="true"><div class="archive-hero-fragment archive-fragment-a">${image('live-cathedral', '')}</div><div class="archive-hero-fragment archive-fragment-b">${image('eastern-jewel', '', '', true)}<span class="archive-hero-glass"></span></div><div class="archive-hero-fragment archive-fragment-c">${image('eastern-feather', '')}</div></div><div class="archive-bar"><p>${showFrames ? t.atlasBody : t.heroSub}</p><a class="archive-enter micro" href="#collection">${t.scroll} <span aria-hidden="true">${icon('arrow-down')}</span></a></div><span class="archive-intro-rule" aria-hidden="true"></span></section><div class="archive-toolbar" id="collection"><div class="view-switch" role="group" aria-label="${t.index}"><button data-view="projects" aria-pressed="${!showFrames}" aria-controls="projects-view">${t.projects} <sup>06</sup></button><button data-view="images" aria-pressed="${showFrames}" aria-controls="images-view">${t.frames} <sup>49</sup></button></div><div class="filters" role="group" aria-label="${t.work}">${['all', 'visual', 'film', 'live'].map((v, i) => `<button data-filter="${v}" class="filter ${i === 0 ? 'active' : ''}" aria-pressed="${i === 0}">${t[v]} <sup>${(showFrames ? atlas : projects).filter((p) => v === 'all' || p.type === v).length}</sup></button>`).join('')}</div><span class="archive-reading-line" aria-hidden="true"></span><span class="archive-results sr-only" role="status"></span></div><section id="projects-view" class="work-grid archive-grid section-pad" data-count="6" ${showFrames ? 'hidden' : ''} aria-label="${t.projects}">${projects.map(card).join('')}</section><section id="images-view" class="atlas-grid section-pad" ${showFrames ? '' : 'hidden'} aria-label="${t.atlas}">${atlas.map(atlasCard).join('')}</section></main>`;
 }
-function project(p){
- const i=projects.indexOf(p),next=projects[(i+1)%projects.length],featured=p.type==='live'||p.id==='future-form';
- return `<main id="main" class="project-page"><section class="page-track detail-entrance" data-page-scene="cover"><div class="page-pin detail-pin"><div class="detail-cover">${frame(p.image,'cover-frame',true)}</div><div class="detail-title"><span class="micro">${p.n} / 06 — ${t[p.type]}</span><h1>${p.title[lang]}</h1><p>${p.subtitle[lang]}</p></div><div class="detail-back micro">${a('work/',`${icon('arrow-left')} ${t.back}`)}</div><span class="detail-side-number" aria-hidden="true">${p.n}</span><div class="detail-bottom micro"><span>MINJA / ${t.portfolio}</span><span>${t.scroll} ${icon('arrow-down')}</span></div></div></section><section class="project-overview section-pad"><span class="micro">01 / ${t.overview}</span><div><h2>${p.subtitle[lang]}</h2><p>${p.body[lang]}</p></div><dl><div><dt>${t.medium}</dt><dd>${t[p.type]}</dd></div><div><dt>${t.role}</dt><dd>${p.id==='manifestation'?t.independent:t.scope}</dd></div><div><dt>${t.images}</dt><dd>${String(p.gallery.length+1).padStart(2,'0')}</dd></div></dl></section><section class="page-track sequence-track" data-page-scene="sequence"><div class="page-pin sequence-pin"><div class="sequence-pictures">${p.gallery.slice(0,3).map((name,j)=>`<div class="sequence-panel" ${j?'inert':''}>${frame(name)}</div>`).join('')}</div><div class="sequence-top micro"><span>02 / ${t.images}</span><span>${p.title[lang]}</span></div><div class="sequence-bottom"><span class="sequence-current">01</span><div class="sequence-line"><i></i></div><span class="micro">/ 03</span></div></div></section>${featured?glassSurface(p.gallery.slice(0,3),'project-glass'):''}${p.gallery.length>3?`<section class="project-gallery expanded-gallery section-pad"><div class="gallery-header micro"><span>03 / ${t.images}</span><span>${t.seeOriginal} ${icon('arrow-up-right')}</span></div>${p.gallery.slice(3,7).map((name,j)=>`<figure class="gallery-frame sequence-${j} reveal">${frame(name)}<figcaption class="micro">${p.n}.${String(j+4).padStart(2,'0')} / MINJA</figcaption></figure>`).join('')}</section>`:''}${p.gallery.length>7?`<section class="drag-section"><div class="gallery-header micro"><span>04 / ${t.images} / ${p.gallery.length-7}</span><span>${t.drag} ${icon('arrows-horizontal')}</span></div><div class="drag-gallery" tabindex="0" role="region" aria-label="${t.images}">${p.gallery.slice(7).map(name=>frame(name)).join('')}</div></section>`:''}<a class="next-project" href="${url('work/'+next.id+'/')}" data-nav data-cursor="${t.next}">${image(next.image,next.title[lang])}<div><span class="micro">${t.next} / ${next.n}</span><h2>${next.title[lang]} ${icon('arrow-up-right')}</h2></div></a></main>`;
+function project(p) {
+  const i = projects.indexOf(p),
+    next = projects[(i + 1) % projects.length],
+    featured = p.type === 'live' || p.id === 'future-form';
+  return `<main id="main" class="project-page"><section class="page-track detail-entrance" data-page-scene="cover"><div class="page-pin detail-pin"><div class="detail-cover">${frame(p.image, 'cover-frame', true)}</div><div class="detail-title"><span class="micro">${p.n} / 06 — ${t[p.type]}</span><h1>${p.title[lang]}</h1><p>${p.subtitle[lang]}</p></div><div class="detail-back micro">${a('work/', `${icon('arrow-left')} ${t.back}`)}</div><span class="detail-side-number" aria-hidden="true">${p.n}</span><div class="detail-bottom micro"><span>MINJA / ${t.portfolio}</span><span>${t.scroll} ${icon('arrow-down')}</span></div></div></section><section class="project-overview section-pad"><span class="micro">01 / ${t.overview}</span><div><h2>${p.subtitle[lang]}</h2><p>${p.body[lang]}</p></div><dl><div><dt>${t.medium}</dt><dd>${t[p.type]}</dd></div><div><dt>${t.role}</dt><dd>${p.id === 'manifestation' ? t.independent : t.scope}</dd></div><div><dt>${t.images}</dt><dd>${String(p.gallery.length + 1).padStart(2, '0')}</dd></div></dl></section><section class="page-track sequence-track" data-page-scene="sequence"><div class="page-pin sequence-pin"><div class="sequence-pictures">${p.gallery
+    .slice(0, 3)
+    .map((name, j) => `<div class="sequence-panel" ${j ? 'inert' : ''}>${frame(name)}</div>`)
+    .join(
+      '',
+    )}</div><div class="sequence-top micro"><span>02 / ${t.images}</span><span>${p.title[lang]}</span></div><div class="sequence-bottom"><span class="sequence-current">01</span><div class="sequence-line"><i></i></div><span class="micro">/ 03</span></div></div></section>${featured ? glassSurface(p.gallery.slice(0, 3), 'project-glass') : ''}${
+    p.gallery.length > 3
+      ? `<section class="project-gallery expanded-gallery section-pad"><div class="gallery-header micro"><span>03 / ${t.images}</span><span>${t.seeOriginal} ${icon('arrow-up-right')}</span></div>${p.gallery
+          .slice(3, 7)
+          .map(
+            (name, j) =>
+              `<figure class="gallery-frame sequence-${j} reveal">${frame(name)}<figcaption class="micro">${p.n}.${String(j + 4).padStart(2, '0')} / MINJA</figcaption></figure>`,
+          )
+          .join('')}</section>`
+      : ''
+  }${
+    p.gallery.length > 7
+      ? `<section class="drag-section"><div class="gallery-header micro"><span>04 / ${t.images} / ${p.gallery.length - 7}</span><span>${t.drag} ${icon('arrows-horizontal')}</span></div><div class="drag-gallery" tabindex="0" role="region" aria-label="${t.images}">${p.gallery
+          .slice(7)
+          .map((name) => frame(name))
+          .join('')}</div></section>`
+      : ''
+  }<a class="next-project" href="${url('work/' + next.id + '/')}" data-nav data-cursor="${t.next}">${image(next.image, next.title[lang])}<div><span class="micro">${t.next} / ${next.n}</span><h2>${next.title[lang]} ${icon('arrow-up-right')}</h2></div></a></main>`;
 }
 
-function collaborations(){const entries=[[t.platforms,t.platformBody,'LibTV / Updream / TapNow / Kling / MiniMax','group-world'],[t.stage,t.stageBody,t.live,'live-c'],[t.independent,t.independentBody,t.visual+' / '+t.film+' / 3D VJ','3d-b']];return `<main id="main" class="collaborations-page"><section class="page-intro section-pad collab-intro"><span class="micro">MINJA / ${t.collab}</span><h1>${t.collabTitle}</h1><p class="page-description">${t.collabIntro}</p></section><section class="page-track ledger-track" data-page-scene="ledger"><div class="page-pin ledger-pin"><div class="ledger-pictures">${entries.map((entry,i)=>`<div class="ledger-image">${image(entry[3],'',i===0?'first-ledger-image':'',i===0)}</div>`).join('')}</div><div class="ledger-scrim"></div><div class="ledger-top micro"><span>${t.collab}</span><div class="ledger-dots">${entries.map(()=>'<i></i>').join('')}</div><span>MINJA / 2026</span></div><span class="ledger-number" aria-hidden="true">01</span><div class="ledger-window">${entries.map((entry,i)=>`<article class="ledger-entry"><span class="micro">0${i+1} / ${t.collab}</span><h2>${entry[0]}</h2><p>${entry[1]}</p><span class="ledger-credits micro">${entry[2]}</span></article>`).join('')}</div><span class="ledger-scroll micro">${t.scroll} ${icon('arrow-down')}</span></div></section><div class="partner-ticker" aria-label="${t.partners}"><div class="partner-ticker-track">${Array.from({length:3},(_,i)=>`<span ${i?'aria-hidden="true"':''}>LibTV <i class="partner-divider" aria-hidden="true"></i> Updream <i class="partner-divider" aria-hidden="true"></i> TapNow <i class="partner-divider" aria-hidden="true"></i> Kling <i class="partner-divider" aria-hidden="true"></i> MiniMax <i class="partner-divider" aria-hidden="true"></i></span>`).join('')}</div></div><section class="collab-end section-pad"><span class="micro">${t.inquiries}</span><h2>${t.inquiriesBody}</h2>${a('contact/',`${t.contact} ${arrow}`,'underlined')}</section></main>`;}
+function collaborations() {
+  const entries = [
+    [t.platforms, t.platformBody, 'LibTV / Updream / TapNow / Kling / MiniMax', 'group-world'],
+    [t.stage, t.stageBody, t.live, 'live-c'],
+    [t.independent, t.independentBody, t.visual + ' / ' + t.film + ' / 3D VJ', '3d-b'],
+  ];
+  return `<main id="main" class="collaborations-page"><section class="page-intro section-pad collab-intro"><span class="micro">MINJA / ${t.collab}</span><h1>${t.collabTitle}</h1><p class="page-description">${t.collabIntro}</p></section><section class="page-track ledger-track" data-page-scene="ledger"><div class="page-pin ledger-pin"><div class="ledger-pictures">${entries.map((entry, i) => `<div class="ledger-image">${image(entry[3], '', i === 0 ? 'first-ledger-image' : '', i === 0)}</div>`).join('')}</div><div class="ledger-scrim"></div><div class="ledger-top micro"><span>${t.collab}</span><div class="ledger-dots">${entries.map(() => '<i></i>').join('')}</div><span>MINJA / 2026</span></div><span class="ledger-number" aria-hidden="true">01</span><div class="ledger-window">${entries.map((entry, i) => `<article class="ledger-entry"><span class="micro">0${i + 1} / ${t.collab}</span><h2>${entry[0]}</h2><p>${entry[1]}</p><span class="ledger-credits micro">${entry[2]}</span></article>`).join('')}</div><span class="ledger-scroll micro">${t.scroll} ${icon('arrow-down')}</span></div></section><div class="partner-ticker" aria-label="${t.partners}"><div class="partner-ticker-track">${Array.from({ length: 3 }, (_, i) => `<span ${i ? 'aria-hidden="true"' : ''}>LibTV <i class="partner-divider" aria-hidden="true"></i> Updream <i class="partner-divider" aria-hidden="true"></i> TapNow <i class="partner-divider" aria-hidden="true"></i> Kling <i class="partner-divider" aria-hidden="true"></i> MiniMax <i class="partner-divider" aria-hidden="true"></i></span>`).join('')}</div></div><section class="collab-end section-pad"><span class="micro">${t.inquiries}</span><h2>${t.inquiriesBody}</h2>${a('contact/', `${t.contact} ${arrow}`, 'underlined')}</section></main>`;
+}
 
-function note(){return `<main id="main" class="personal-note"><section class="page-track note-hero" data-page-scene="portrait"><div class="page-pin note-hero-pin"><div class="note-hero-picture">${image('about',t.about,'',true)}${[0,1,2].map(i=>`<div class="portrait-slice portrait-slice-${i}" aria-hidden="true">${image('about','')}</div>`).join('')}</div><div class="note-hero-type"><span class="micro">MINJA / ${t.statement}</span><h1>${t.noteTitle}</h1><span class="note-hero-signature">MINJA</span></div><span class="note-hero-bottom micro">${t.scroll} ${icon('arrow-down')}</span></div></section><section class="note-reading section-pad"><aside class="note-reading-aside"><span class="micro">01 / ${t.about}</span>${signatureMarkup({image:image('eastern-bloom','','',false,'(max-width: 700px) 300px, 340px'),alternate:image('eastern-jewel','','signature-alternate',false,'(max-width: 700px) 300px, 340px'),label:t.enlarge})}<span class="micro">${t.director}</span></aside><article class="note-copy"><h2 data-read>${t.noteLead}</h2><p data-read>${t.noteBody}</p><p data-read>${t.noteBody2}</p><p data-read>${t.noteEnd}</p>${a('contact/',`${t.contact} ${arrow}`,'underlined')}</article></section><section id="garden" class="note-panorama garden-viewer" aria-label="${t.gardenTitle}"><div class="garden-pin"><div class="garden-surface" tabindex="0" role="group" aria-label="${t.gardenExplore}"><div class="garden-fallback" style="background-image:url('${preview('garden-panorama')}')" role="img" aria-label="${t.gardenAlt}"></div><canvas aria-hidden="true"></canvas></div></div></section></main>`;}
+function note() {
+  return `<main id="main" class="personal-note"><section class="page-track note-hero" data-page-scene="portrait"><div class="page-pin note-hero-pin"><div class="note-hero-picture">${image('about', t.about, '', true)}${[0, 1, 2].map((i) => `<div class="portrait-slice portrait-slice-${i}" aria-hidden="true">${image('about', '')}</div>`).join('')}</div><div class="note-hero-type"><span class="micro">MINJA / ${t.statement}</span><h1>${t.noteTitle}</h1><span class="note-hero-signature">MINJA</span></div><span class="note-hero-bottom micro">${t.scroll} ${icon('arrow-down')}</span></div></section><section class="note-reading section-pad"><aside class="note-reading-aside"><span class="micro">01 / ${t.about}</span>${signatureMarkup({ image: image('eastern-bloom', '', '', false, '(max-width: 700px) 300px, 340px'), alternate: image('eastern-jewel', '', 'signature-alternate', false, '(max-width: 700px) 300px, 340px'), label: t.enlarge })}<span class="micro">${t.director}</span></aside><article class="note-copy"><h2 data-read>${t.noteLead}</h2><p data-read>${t.noteBody}</p><p data-read>${t.noteBody2}</p><p data-read>${t.noteEnd}</p>${a('contact/', `${t.contact} ${arrow}`, 'underlined')}</article></section><section id="garden" class="note-panorama garden-viewer" aria-label="${t.gardenTitle}"><div class="garden-pin"><div class="garden-surface" tabindex="0" role="group" aria-label="${t.gardenExplore}"><div class="garden-fallback" style="background-image:url('${preview('garden-panorama')}')" role="img" aria-label="${t.gardenAlt}"></div><canvas aria-hidden="true"></canvas></div></div></section></main>`;
+}
 
-function contacts(){return `<main id="main" class="contact-page"><section class="contact-top section-pad"><span class="micro">MINJA / ${t.contact}</span><h1>${t.contactTitle}</h1><p>${t.contactLead}</p></section><section class="inquiry-layout section-pad"><aside class="inquiry-aside"><div class="contact-picture">${image('nature-eye',projects[5].title[lang],'',true)}</div><span class="micro">${t.inquiries}</span><p>${t.inquiriesBody}</p><div class="inquiry-social">${contact.social.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">${s.name} ${icon('arrow-up-right')}</a>`).join('')}</div></aside><div class="inquiry-form-wrap"><div class="inquiry-form-heading"><div class="inquiry-progress" aria-hidden="true"><div><i></i></div><span>00 / 03</span></div><span class="micro">01 / ${t.formTitle}</span><p>${t.formIntro}</p></div><form id="inquiry-form" class="inquiry-form" action="${formConfig.endpoint.replace('/ajax/','/')}" method="POST"><div class="inquiry-field-row"><div class="inquiry-field"><label for="inquiry-name">${t.formName} <span>*</span></label><input id="inquiry-name" name="name" autocomplete="name" required maxlength="120" placeholder="${t.formNameHint}"></div><div class="inquiry-field"><label for="inquiry-email">${t.formEmail} <span>*</span></label><input id="inquiry-email" name="email" autocomplete="email" type="email" required maxlength="254" placeholder="you@example.com"></div></div><div class="inquiry-field-row"><div class="inquiry-field"><label for="inquiry-company">${t.formCompany}</label><input id="inquiry-company" name="company" autocomplete="organization" maxlength="180" placeholder="${t.formOptional}"></div><div class="inquiry-field"><label for="inquiry-type">${t.formType}</label><select id="inquiry-type" name="project_type"><option value="">${t.formChoose}</option>${['Music video','Artist visuals','Live / VJ','Visual identity','Experimental film','Other'].map((v,i)=>`<option value="${v}">${t.formTypes[i]}</option>`).join('')}</select></div></div><div class="inquiry-field"><label for="inquiry-message">${t.formMessage} <span>*</span></label><textarea id="inquiry-message" name="message" rows="5" required maxlength="6000" placeholder="${t.formMessageHint}"></textarea><div class="inquiry-counter" aria-hidden="true"><span id="message-count">0</span> / 6000</div></div><div class="form-honey" aria-hidden="true"><label for="inquiry-website">Website</label><input id="inquiry-website" name="_honey" tabindex="-1" autocomplete="off"></div><input type="hidden" name="_subject" value="MINJA — New portfolio inquiry"><input type="hidden" name="_template" value="table"><input type="hidden" name="_url" value="${formConfig.page}"><div class="inquiry-submit-row"><p>${t.formPrivacy}</p><button class="inquiry-submit" type="submit"><span>${t.formSend}</span><i aria-hidden="true">${icon('arrow-up-right')}</i></button></div><div id="form-status" class="form-status" role="status" aria-live="polite" hidden></div></form></div></section></main>`;}
+function contacts() {
+  return `<main id="main" class="contact-page"><section class="contact-top section-pad"><span class="micro">MINJA / ${t.contact}</span><h1>${t.contactTitle}</h1><p>${t.contactLead}</p></section><section class="inquiry-layout section-pad"><aside class="inquiry-aside"><div class="contact-picture">${image('nature-eye', projects[5].title[lang], '', true)}</div><span class="micro">${t.inquiries}</span><p>${t.inquiriesBody}</p><div class="inquiry-social">${contact.social.map((s) => `<a href="${s.url}" target="_blank" rel="noopener">${s.name} ${icon('arrow-up-right')}</a>`).join('')}</div></aside><div class="inquiry-form-wrap"><div class="inquiry-form-heading"><div class="inquiry-progress" aria-hidden="true"><div><i></i></div><span>00 / 03</span></div><span class="micro">01 / ${t.formTitle}</span><p>${t.formIntro}</p></div><form id="inquiry-form" class="inquiry-form" action="${formConfig.endpoint.replace('/ajax/', '/')}" method="POST"><div class="inquiry-field-row"><div class="inquiry-field"><label for="inquiry-name">${t.formName} <span>*</span></label><input id="inquiry-name" name="name" autocomplete="name" required maxlength="120" placeholder="${t.formNameHint}"></div><div class="inquiry-field"><label for="inquiry-email">${t.formEmail} <span>*</span></label><input id="inquiry-email" name="email" autocomplete="email" type="email" required maxlength="254" placeholder="you@example.com"></div></div><div class="inquiry-field-row"><div class="inquiry-field"><label for="inquiry-company">${t.formCompany}</label><input id="inquiry-company" name="company" autocomplete="organization" maxlength="180" placeholder="${t.formOptional}"></div><div class="inquiry-field"><label for="inquiry-type">${t.formType}</label><select id="inquiry-type" name="project_type"><option value="">${t.formChoose}</option>${['Music video', 'Artist visuals', 'Live / VJ', 'Visual identity', 'Experimental film', 'Other'].map((v, i) => `<option value="${v}">${t.formTypes[i]}</option>`).join('')}</select></div></div><div class="inquiry-field"><label for="inquiry-message">${t.formMessage} <span>*</span></label><textarea id="inquiry-message" name="message" rows="5" required maxlength="6000" placeholder="${t.formMessageHint}"></textarea><div class="inquiry-counter" aria-hidden="true"><span id="message-count">0</span> / 6000</div></div><div class="form-honey" aria-hidden="true"><label for="inquiry-website">Website</label><input id="inquiry-website" name="_honey" tabindex="-1" autocomplete="off"></div><input type="hidden" name="_subject" value="MINJA — New portfolio inquiry"><input type="hidden" name="_template" value="table"><input type="hidden" name="_url" value="${formConfig.page}"><div class="inquiry-submit-row"><p>${t.formPrivacy}</p><button class="inquiry-submit" type="submit"><span>${t.formSend}</span><i aria-hidden="true">${icon('arrow-up-right')}</i></button></div><div id="form-status" class="form-status" role="status" aria-live="polite" hidden></div></form></div></section></main>`;
+}
 
-function getRoute(){let path=decodeURI(location.pathname);if(path.startsWith(base.pathname))path=path.slice(base.pathname.length);return path.replace(/index\.html$/,'').replace(/^\/|\/$/g,'');}
-function render(){cleanup(); t=copy[lang];document.documentElement.lang=lang;document.documentElement.classList.toggle('motion-off',!motion);$('#lightbox').setAttribute('aria-label',t.images);current=getRoute();document.body.dataset.page=current||'home';let markup, title=t.home;if(current==='work'){markup=work();title=t.work}else if(current==='collaborations'){markup=collaborations();title=t.collab}else if(current==='note'){markup=note();title=t.note}else if(current==='contact'){markup=contacts();title=t.contact}else if(current.startsWith('work/')){let p=projects.find(p=>p.id===current.split('/')[1]);markup=p?project(p):`<main id="main" class="section-pad"><h1>${t.notFound}</h1>${a('',t.returnHome)}</main>`;title=p?.title[lang]||t.notFound}else markup=home();document.title=`MINJA — ${title==='Home'?'Visual Direction & Generative Film':title}`;root.innerHTML=header()+markup+footer();$$('.desktop-nav a').forEach(x=>{if(current.startsWith(x.pathname.slice(base.pathname.length).replace(/\/$/,'')))x.setAttribute('aria-current','page')});init();}
-function init(){const abort=new AbortController(),signal=abort.signal;let observers=[],raf=0,glStop=()=>{};const on=(el,event,fn,opts={})=>el?.addEventListener(event,fn,{...opts,signal});
- const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}}),{threshold:.08});$$('.reveal').forEach(el=>obs.observe(el));observers.push(obs);
- on($('#language-toggle'),'click',()=>{const menu=$('#language-menu'),b=$('#language-toggle');menu.hidden=!menu.hidden;b.setAttribute('aria-expanded',!menu.hidden)});
- $$('[data-lang]').forEach(b=>on(b,'click',()=>{const y=scrollY;lang=b.dataset.lang;storage.set('minja-language',lang);const u=new URL(location);u.searchParams.set('lang',lang);history.replaceState({},'',u);render();scrollTo(0,y)}));
- on(document,'click',e=>{if(!e.target.closest('.lang-wrap')){$('#language-menu').hidden=true;$('#language-toggle').setAttribute('aria-expanded','false')}});
+function getRoute() {
+  let path = decodeURI(location.pathname);
+  if (path.startsWith(base.pathname)) path = path.slice(base.pathname.length);
+  return path.replace(/index\.html$/, '').replace(/^\/|\/$/g, '');
+}
+function render() {
+  cleanup();
+  t = copy[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.classList.toggle('motion-off', !motion);
+  $('#lightbox').setAttribute('aria-label', t.images);
+  current = getRoute();
+  document.body.dataset.page = current || 'home';
+  let markup,
+    title = t.home;
+  if (current === 'work') {
+    markup = work();
+    title = t.work;
+  } else if (current === 'collaborations') {
+    markup = collaborations();
+    title = t.collab;
+  } else if (current === 'note') {
+    markup = note();
+    title = t.note;
+  } else if (current === 'contact') {
+    markup = contacts();
+    title = t.contact;
+  } else if (current.startsWith('work/')) {
+    let p = projects.find((p) => p.id === current.split('/')[1]);
+    markup = p
+      ? project(p)
+      : `<main id="main" class="section-pad"><h1>${t.notFound}</h1>${a('', t.returnHome)}</main>`;
+    title = p?.title[lang] || t.notFound;
+  } else markup = home();
+  document.title = `MINJA — ${title === 'Home' ? 'Visual Direction & Generative Film' : title}`;
+  root.innerHTML = header() + markup + footer();
+  $$('.desktop-nav a').forEach((x) => {
+    if (current.startsWith(x.pathname.slice(base.pathname.length).replace(/\/$/, '')))
+      x.setAttribute('aria-current', 'page');
+  });
+  init();
+}
+function init() {
+  const abort = new AbortController(),
+    signal = abort.signal;
+  let observers = [],
+    raf = 0,
+    glStop = () => {};
+  const on = (el, event, fn, opts = {}) => el?.addEventListener(event, fn, { ...opts, signal });
+  const obs = new IntersectionObserver(
+    (entries) =>
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          obs.unobserve(e.target);
+        }
+      }),
+    { threshold: 0.08 },
+  );
+  $$('.reveal').forEach((el) => obs.observe(el));
+  observers.push(obs);
+  on($('#language-toggle'), 'click', () => {
+    const menu = $('#language-menu'),
+      b = $('#language-toggle');
+    menu.hidden = !menu.hidden;
+    b.setAttribute('aria-expanded', !menu.hidden);
+  });
+  $$('[data-lang]').forEach((b) =>
+    on(b, 'click', () => {
+      const y = scrollY;
+      lang = b.dataset.lang;
+      storage.set('minja-language', lang);
+      const u = new URL(location);
+      u.searchParams.set('lang', lang);
+      history.replaceState({}, '', u);
+      render();
+      scrollTo(0, y);
+    }),
+  );
+  on(document, 'click', (e) => {
+    if (!e.target.closest('.lang-wrap')) {
+      $('#language-menu').hidden = true;
+      $('#language-toggle').setAttribute('aria-expanded', 'false');
+    }
+  });
 
- on(document,'keydown',e=>{if(e.key==='Tab'&&!$('#nav-overlay').hidden){const links=$$('a',$('#nav-overlay')),first=links[0],last=links.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();$('#menu-toggle').focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();$('#menu-toggle').focus()}else if(document.activeElement===$('#menu-toggle')){e.preventDefault();(e.shiftKey?last:first).focus()}}if(e.key==='Escape'){closeLightbox();if(!$('#nav-overlay').hidden)$('#menu-toggle').click();$('#language-menu').hidden=true;$('#language-toggle').setAttribute('aria-expanded','false')}});
- on($('#motion-toggle'),'click',()=>{motion=!motion;storage.set('minja-motion',motion?'on':'off');const y=scrollY;render();scrollTo(0,y)});
- on($('#top-button'),'click',()=>scrollTo({top:0,behavior:motion?'smooth':'instant'}));
- on($('#copy-email'),'click',async()=>{try{await navigator.clipboard.writeText(contact.email);$('#copy-email').textContent=t.copied}catch{$('#copy-email').textContent=contact.email}});
- function applyFilter(value){
-  const u=new URL(location);if(value==='all')u.searchParams.delete('type');else u.searchParams.set('type',value);history.replaceState({},'',u);
-  $$('[data-filter]').forEach(b=>{b.classList.toggle('active',b.dataset.filter===value);b.setAttribute('aria-pressed',b.dataset.filter===value)});
-  $$('.work-card,.atlas-card').forEach(c=>c.hidden=value!=='all'&&c.dataset.type!==value);
- }
- if($('.archive')){const initialType=new URLSearchParams(location.search).get('type');if(['visual','film','live'].includes(initialType))applyFilter(initialType);}
- $$('[data-filter]').forEach(b=>on(b,'click',()=>applyFilter(b.dataset.filter)));
- $$('[data-view]').forEach(b=>on(b,'click',()=>{const frames=b.dataset.view==='images';$('#projects-view').hidden=frames;$('#images-view').hidden=!frames;$$('[data-view]').forEach(x=>x.setAttribute('aria-pressed',x===b));const u=new URL(location);if(frames)u.searchParams.set('view','images');else u.searchParams.delete('view');history.replaceState({},'',u);$('.archive h1').innerHTML=frames?t.atlasTitle:t.selected;$('.archive-bar>p').textContent=frames?t.atlasBody:t.heroSub;$$('[data-filter]').forEach(x=>$('sup',x).textContent=(frames?atlas:projects).filter(v=>x.dataset.filter==='all'||v.type===x.dataset.filter).length);}));
- const glassStops=$$('.glass-surface').map(stage=>initGlassSurface(stage,on));
- const storyStop=initStory({motion,on}),inquiryStop=initInquiry({formConfig,labels:t,on,signal});
- const archiveStop=initArchive({motion,on}),panoramaStop=initPanorama({motion,on});
- const identityStop=initIdentity({motion,on}),navigationStop=initNavigation({motion,on}),pageStop=initPageMotion({motion,on});
- const signatureStop=initSignature({motion,on});
- const lettersStop=initLetterFields({motion,on,targets:[$('.opening-type'),$('.opening-micro'),$('.opening-scroll'),$('.signal-type h2')]});
- $$('[data-chapter]').forEach(link=>on(link,'click',event=>{event.preventDefault();const target=document.getElementById(link.dataset.chapter);if(!target)return;const u=new URL(location);u.hash=link.dataset.chapter;history.replaceState({},'',u);(target.closest('.story-track')||target).scrollIntoView({block:'start',behavior:motion?'smooth':'instant'});}));
- $$('[data-lightbox]').forEach(b=>on(b,'click',()=>{if(!b.closest('.drag-gallery')?.dataset.dragged)openLightbox(b.dataset.lightbox)}));
- $$('.drag-gallery').forEach(g=>{let x=0,left=0,down=false;on(g,'pointerdown',e=>{if(e.pointerType==='touch')return;down=true;x=e.clientX;left=g.scrollLeft;g.dataset.dragged='';g.classList.add('grabbing')});on(window,'pointermove',e=>{if(!down)return;const dx=e.clientX-x;if(Math.abs(dx)>5)g.dataset.dragged='yes';g.scrollLeft=left-dx});on(window,'pointerup',()=>{down=false;g.classList.remove('grabbing');setTimeout(()=>delete g.dataset.dragged,50)})});
- const cursor=$('#cursor');if(cursor)cursor.hidden=!motion;
- let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my,targetX=0,targetY=0,hx=0,hy=0;const hero=$('.hero-art');
- on(window,'pointermove',e=>{mx=e.clientX;my=e.clientY;const target=e.target.closest('[data-cursor]');if(cursor){cursor.classList.toggle('large',!!target);cursor.textContent=target?.dataset.cursor||''}if(hero){const r=hero.getBoundingClientRect();targetX=(e.clientX-r.left)/r.width-.5;targetY=(e.clientY-r.top)/r.height-.5}});
- on(document,'pointerleave',()=>cursor?.classList.add('out'));on(document,'pointerenter',()=>cursor?.classList.remove('out'));
- const sticky=$('.practice'),practiceImg=$('.practice-image img'),heroImg=$('.hero-image');let progress=$('#scroll-progress');
- function tick(){if(motion){cx+=(mx-cx)*.16;cy+=(my-cy)*.16;if(cursor)cursor.style.transform=`translate3d(${cx}px,${cy}px,0)`;hx+=(targetX-hx)*.045;hy+=(targetY-hy)*.045;if(heroImg){const r=hero.getBoundingClientRect();const imageTransform=`translate3d(${hx*-14}px,${hy*-10+Math.max(0,-r.top)*.12}px,0) scale(1.12)`;heroImg.style.transform=imageTransform;const opticalCanvas=$('.hero-canvas',hero);if(opticalCanvas)opticalCanvas.style.transform=imageTransform}if(sticky&&practiceImg){const r=sticky.getBoundingClientRect();practiceImg.style.transform=`scale(${1.12-Math.max(0,Math.min(1,(innerHeight-r.top)/(r.height+innerHeight)))*.12})`}}if(progress){const h=document.documentElement.scrollHeight-innerHeight;progress.style.transform=`scaleX(${h>0?scrollY/h:0})`}raf=requestAnimationFrame(tick)}tick();
- if(hero)glStop=initHeroOptics({canvas:$('.hero-canvas'),img:heroImg,motion,on});
- const intro=$('.hero-title');if(intro&&motion)intro.animate([{opacity:0,transform:'translateY(40px)',filter:'blur(8px)'},{opacity:1,transform:'none',filter:'blur(0)'}],{duration:1100,easing:'cubic-bezier(.16,1,.3,1)'});
- cleanup=()=>{abort.abort();observers.forEach(o=>o.disconnect());cancelAnimationFrame(raf);glStop();panoramaStop();storyStop();inquiryStop();archiveStop();identityStop();navigationStop();pageStop();signatureStop();lettersStop();glassStops.forEach(stop=>stop());document.body.classList.remove('menu-open');if(cursor)cursor.classList.remove('large')};
+  on(document, 'keydown', (e) => {
+    if (e.key === 'Tab' && !$('#nav-overlay').hidden) {
+      const links = $$('a', $('#nav-overlay')),
+        first = links[0],
+        last = links.at(-1);
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        $('#menu-toggle').focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        $('#menu-toggle').focus();
+      } else if (document.activeElement === $('#menu-toggle')) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      }
+    }
+    if (e.key === 'Escape') {
+      closeLightbox();
+      if (!$('#nav-overlay').hidden) $('#menu-toggle').click();
+      $('#language-menu').hidden = true;
+      $('#language-toggle').setAttribute('aria-expanded', 'false');
+    }
+  });
+  on($('#motion-toggle'), 'click', () => {
+    motion = !motion;
+    storage.set('minja-motion', motion ? 'on' : 'off');
+    const y = scrollY;
+    render();
+    scrollTo(0, y);
+  });
+  on($('#top-button'), 'click', () =>
+    scrollTo({ top: 0, behavior: motion ? 'smooth' : 'instant' }),
+  );
+  on($('#copy-email'), 'click', async () => {
+    try {
+      await navigator.clipboard.writeText(contact.email);
+      $('#copy-email').textContent = t.copied;
+    } catch {
+      $('#copy-email').textContent = contact.email;
+    }
+  });
+  function applyFilter(value) {
+    const u = new URL(location);
+    if (value === 'all') u.searchParams.delete('type');
+    else u.searchParams.set('type', value);
+    history.replaceState({}, '', u);
+    $$('[data-filter]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.filter === value);
+      b.setAttribute('aria-pressed', b.dataset.filter === value);
+    });
+    $$('.work-card,.atlas-card').forEach(
+      (c) => (c.hidden = value !== 'all' && c.dataset.type !== value),
+    );
+  }
+  if ($('.archive')) {
+    const initialType = new URLSearchParams(location.search).get('type');
+    if (['visual', 'film', 'live'].includes(initialType)) applyFilter(initialType);
+  }
+  $$('[data-filter]').forEach((b) => on(b, 'click', () => applyFilter(b.dataset.filter)));
+  $$('[data-view]').forEach((b) =>
+    on(b, 'click', () => {
+      const frames = b.dataset.view === 'images';
+      $('#projects-view').hidden = frames;
+      $('#images-view').hidden = !frames;
+      $$('[data-view]').forEach((x) => x.setAttribute('aria-pressed', x === b));
+      const u = new URL(location);
+      if (frames) u.searchParams.set('view', 'images');
+      else u.searchParams.delete('view');
+      history.replaceState({}, '', u);
+      $('.archive h1').innerHTML = frames ? t.atlasTitle : t.selected;
+      $('.archive-bar>p').textContent = frames ? t.atlasBody : t.heroSub;
+      $$('[data-filter]').forEach(
+        (x) =>
+          ($('sup', x).textContent = (frames ? atlas : projects).filter(
+            (v) => x.dataset.filter === 'all' || v.type === x.dataset.filter,
+          ).length),
+      );
+    }),
+  );
+  const glassStops = $$('.glass-surface').map((stage) => initGlassSurface(stage, on));
+  const storyStop = initStory({ motion, on }),
+    inquiryStop = initInquiry({ formConfig, labels: t, on, signal });
+  const archiveStop = initArchive({ motion, on }),
+    panoramaStop = initPanorama({ motion, on });
+  const identityStop = initIdentity({ motion, on }),
+    navigationStop = initNavigation({ motion, on }),
+    pageStop = initPageMotion({ motion, on });
+  const signatureStop = initSignature({ motion, on });
+  const lettersStop = initLetterFields({
+    motion,
+    on,
+    targets: [$('.opening-type'), $('.opening-micro'), $('.opening-scroll'), $('.signal-type h2')],
+  });
+  $$('[data-chapter]').forEach((link) =>
+    on(link, 'click', (event) => {
+      event.preventDefault();
+      const target = document.getElementById(link.dataset.chapter);
+      if (!target) return;
+      const u = new URL(location);
+      u.hash = link.dataset.chapter;
+      history.replaceState({}, '', u);
+      (target.closest('.story-track') || target).scrollIntoView({
+        block: 'start',
+        behavior: motion ? 'smooth' : 'instant',
+      });
+    }),
+  );
+  $$('[data-lightbox]').forEach((b) =>
+    on(b, 'click', () => {
+      if (!b.closest('.drag-gallery')?.dataset.dragged) openLightbox(b.dataset.lightbox);
+    }),
+  );
+  $$('.drag-gallery').forEach((g) => {
+    let x = 0,
+      left = 0,
+      down = false;
+    on(g, 'pointerdown', (e) => {
+      if (e.pointerType === 'touch') return;
+      down = true;
+      x = e.clientX;
+      left = g.scrollLeft;
+      g.dataset.dragged = '';
+      g.classList.add('grabbing');
+    });
+    on(window, 'pointermove', (e) => {
+      if (!down) return;
+      const dx = e.clientX - x;
+      if (Math.abs(dx) > 5) g.dataset.dragged = 'yes';
+      g.scrollLeft = left - dx;
+    });
+    on(window, 'pointerup', () => {
+      down = false;
+      g.classList.remove('grabbing');
+      setTimeout(() => delete g.dataset.dragged, 50);
+    });
+  });
+  const cursor = $('#cursor');
+  if (cursor) cursor.hidden = !motion;
+  let mx = innerWidth / 2,
+    my = innerHeight / 2,
+    cx = mx,
+    cy = my,
+    targetX = 0,
+    targetY = 0,
+    hx = 0,
+    hy = 0;
+  const hero = $('.hero-art');
+  on(window, 'pointermove', (e) => {
+    mx = e.clientX;
+    my = e.clientY;
+    const target = e.target.closest('[data-cursor]');
+    if (cursor) {
+      cursor.classList.toggle('large', !!target);
+      cursor.textContent = target?.dataset.cursor || '';
+    }
+    if (hero) {
+      const r = hero.getBoundingClientRect();
+      targetX = (e.clientX - r.left) / r.width - 0.5;
+      targetY = (e.clientY - r.top) / r.height - 0.5;
+    }
+  });
+  on(document, 'pointerleave', () => cursor?.classList.add('out'));
+  on(document, 'pointerenter', () => cursor?.classList.remove('out'));
+  const sticky = $('.practice'),
+    practiceImg = $('.practice-image img'),
+    heroImg = $('.hero-image');
+  let progress = $('#scroll-progress');
+  function tick() {
+    if (motion) {
+      cx += (mx - cx) * 0.16;
+      cy += (my - cy) * 0.16;
+      if (cursor) cursor.style.transform = `translate3d(${cx}px,${cy}px,0)`;
+      hx += (targetX - hx) * 0.045;
+      hy += (targetY - hy) * 0.045;
+      if (heroImg) {
+        const r = hero.getBoundingClientRect();
+        const imageTransform = `translate3d(${hx * -14}px,${hy * -10 + Math.max(0, -r.top) * 0.12}px,0) scale(1.12)`;
+        heroImg.style.transform = imageTransform;
+        const opticalCanvas = $('.hero-canvas', hero);
+        if (opticalCanvas) opticalCanvas.style.transform = imageTransform;
+      }
+      if (sticky && practiceImg) {
+        const r = sticky.getBoundingClientRect();
+        practiceImg.style.transform = `scale(${1.12 - Math.max(0, Math.min(1, (innerHeight - r.top) / (r.height + innerHeight))) * 0.12})`;
+      }
+    }
+    if (progress) {
+      const h = document.documentElement.scrollHeight - innerHeight;
+      progress.style.transform = `scaleX(${h > 0 ? scrollY / h : 0})`;
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  tick();
+  if (hero) glStop = initHeroOptics({ canvas: $('.hero-canvas'), img: heroImg, motion, on });
+  const intro = $('.hero-title');
+  if (intro && motion)
+    intro.animate(
+      [
+        { opacity: 0, transform: 'translateY(40px)', filter: 'blur(8px)' },
+        { opacity: 1, transform: 'none', filter: 'blur(0)' },
+      ],
+      { duration: 1100, easing: 'cubic-bezier(.16,1,.3,1)' },
+    );
+  cleanup = () => {
+    abort.abort();
+    observers.forEach((o) => o.disconnect());
+    cancelAnimationFrame(raf);
+    glStop();
+    panoramaStop();
+    storyStop();
+    inquiryStop();
+    archiveStop();
+    identityStop();
+    navigationStop();
+    pageStop();
+    signatureStop();
+    lettersStop();
+    glassStops.forEach((stop) => stop());
+    document.body.classList.remove('menu-open');
+    if (cursor) cursor.classList.remove('large');
+  };
 }
 // A subtle real-time liquid refraction, rendered from the original portfolio artwork.
 
-function initGlassSurface(stage,on){
- const names=stage.dataset.glassImages.split(',');let index=0,alive=true,raf=0,tx=0,ty=0,x=0,y=0;
- const texture=motion&&matchMedia('(pointer:fine)').matches?createFrostTexture($('.glass-texture',stage),names[0]):null;
- const update=(delta)=>{index=(index+delta+names.length)%names.length;const name=names[index],button=$('.glass-art',stage);stage.dataset.glassIndex=index;button.dataset.lightbox=name;button.innerHTML=image(name,'MINJA — '+name.replaceAll('-',' '))+`<span class="image-plus" aria-hidden="true">${icon('plus')}</span>`;$('.glass-background',stage).innerHTML=image(name,'');$('.glass-counter',stage).textContent=`${String(index+1).padStart(2,'0')} / ${String(names.length).padStart(2,'0')}`;texture?.setSource(name);if(motion)button.animate([{opacity:.2,transform:'translateY(12px)'},{opacity:1,transform:'translateY(0)'}],{duration:650,easing:'cubic-bezier(.2,.8,.2,1)'});};
- on($('[data-glass-prev]',stage),'click',()=>update(-1));on($('[data-glass-next]',stage),'click',()=>update(1));
- on($('[data-glass-toggle]',stage),'click',e=>{const clear=stage.classList.toggle('is-clear');e.currentTarget.setAttribute('aria-pressed',!clear);e.currentTarget.textContent=clear?t.clear:t.glass;});
- on(stage,'pointermove',e=>{if(e.pointerType==='touch'||!motion)return;const r=stage.getBoundingClientRect();tx=(e.clientX-r.left)/r.width-.5;ty=(e.clientY-r.top)/r.height-.5});on(stage,'pointerleave',()=>{tx=0;ty=0});
- stage.tabIndex=0;stage.setAttribute('role','group');stage.setAttribute('aria-label',t.glassView);
- on(stage,'keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();update(1)}if(e.key==='ArrowLeft'){e.preventDefault();update(-1)}});
- function tick(){if(!alive)return;if(motion&&!document.hidden){const r=stage.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight){x+=(tx-x)*.055;y+=(ty-y)*.055;const scroll=Math.max(-1,Math.min(1,(innerHeight/2-r.top-r.height/2)/innerHeight));stage.style.setProperty('--glass-x',x.toFixed(4));stage.style.setProperty('--glass-y',y.toFixed(4));stage.style.setProperty('--glass-scroll',scroll.toFixed(4));texture?.setPointer(x,y,scroll)}}raf=requestAnimationFrame(tick)}if(motion)tick();
- return()=>{alive=false;cancelAnimationFrame(raf);texture?.destroy()};
+function initGlassSurface(stage, on) {
+  const names = stage.dataset.glassImages.split(',');
+  let index = 0,
+    alive = true,
+    raf = 0,
+    tx = 0,
+    ty = 0,
+    x = 0,
+    y = 0;
+  const texture =
+    motion && matchMedia('(pointer:fine)').matches
+      ? createFrostTexture($('.glass-texture', stage), names[0])
+      : null;
+  const update = (delta) => {
+    index = (index + delta + names.length) % names.length;
+    const name = names[index],
+      button = $('.glass-art', stage);
+    stage.dataset.glassIndex = index;
+    button.dataset.lightbox = name;
+    button.innerHTML =
+      image(name, 'MINJA — ' + name.replaceAll('-', ' ')) +
+      `<span class="image-plus" aria-hidden="true">${icon('plus')}</span>`;
+    $('.glass-background', stage).innerHTML = image(name, '');
+    $('.glass-counter', stage).textContent =
+      `${String(index + 1).padStart(2, '0')} / ${String(names.length).padStart(2, '0')}`;
+    texture?.setSource(name);
+    if (motion)
+      button.animate(
+        [
+          { opacity: 0.2, transform: 'translateY(12px)' },
+          { opacity: 1, transform: 'translateY(0)' },
+        ],
+        { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' },
+      );
+  };
+  on($('[data-glass-prev]', stage), 'click', () => update(-1));
+  on($('[data-glass-next]', stage), 'click', () => update(1));
+  on($('[data-glass-toggle]', stage), 'click', (e) => {
+    const clear = stage.classList.toggle('is-clear');
+    e.currentTarget.setAttribute('aria-pressed', !clear);
+    e.currentTarget.textContent = clear ? t.clear : t.glass;
+  });
+  on(stage, 'pointermove', (e) => {
+    if (e.pointerType === 'touch' || !motion) return;
+    const r = stage.getBoundingClientRect();
+    tx = (e.clientX - r.left) / r.width - 0.5;
+    ty = (e.clientY - r.top) / r.height - 0.5;
+  });
+  on(stage, 'pointerleave', () => {
+    tx = 0;
+    ty = 0;
+  });
+  stage.tabIndex = 0;
+  stage.setAttribute('role', 'group');
+  stage.setAttribute('aria-label', t.glassView);
+  on(stage, 'keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      update(1);
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      update(-1);
+    }
+  });
+  function tick() {
+    if (!alive) return;
+    if (motion && !document.hidden) {
+      const r = stage.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < innerHeight) {
+        x += (tx - x) * 0.055;
+        y += (ty - y) * 0.055;
+        const scroll = Math.max(
+          -1,
+          Math.min(1, (innerHeight / 2 - r.top - r.height / 2) / innerHeight),
+        );
+        stage.style.setProperty('--glass-x', x.toFixed(4));
+        stage.style.setProperty('--glass-y', y.toFixed(4));
+        stage.style.setProperty('--glass-scroll', scroll.toFixed(4));
+        texture?.setPointer(x, y, scroll);
+      }
+    }
+    raf = requestAnimationFrame(tick);
+  }
+  if (motion) tick();
+  return () => {
+    alive = false;
+    cancelAnimationFrame(raf);
+    texture?.destroy();
+  };
 }
-function createFrostTexture(canvas,name){
- let gl;try{gl=canvas.getContext('webgl',{alpha:false,antialias:false,powerPreference:'low-power'})}catch{return null}if(!gl)return null;
- const vs='attribute vec2 a;varying vec2 uv;void main(){uv=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
- const fs=`precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform vec2 size;uniform vec2 photo;uniform vec2 pointer;uniform float clock;uniform float scroll;
+function createFrostTexture(canvas, name) {
+  let gl;
+  try {
+    gl = canvas.getContext('webgl', {
+      alpha: false,
+      antialias: false,
+      powerPreference: 'low-power',
+    });
+  } catch {
+    return null;
+  }
+  if (!gl) return null;
+  const vs = 'attribute vec2 a;varying vec2 uv;void main(){uv=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
+  const fs = `precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform vec2 size;uniform vec2 photo;uniform vec2 pointer;uniform float clock;uniform float scroll;
  float noise(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
  void main(){vec2 p=vec2(uv.x,1.-uv.y);float r=size.x/size.y;float ir=photo.x/photo.y;vec2 cover=vec2(min(r/ir,1.),min(ir/r,1.));vec2 q=(p-.5)*cover*.82+.5;vec2 m=pointer*vec2(.035,.025);q+=m+vec2(0.,scroll*.035);
  float wave=sin(p.y*7.+clock*.2+p.x*5.)*.007;float ribs=sin(p.x*size.x*.24+wave*60.);q.x+=ribs*.0025+wave;q.y+=cos(p.x*7.+clock*.14)*.008;
@@ -148,39 +631,249 @@ function createFrostTexture(canvas,name){
  c+=texture2D(tex,q+vec2(blur.x,0.)).rgb*.1;c+=texture2D(tex,q-vec2(blur.x,0.)).rgb*.1;c+=texture2D(tex,q+vec2(0.,blur.y)).rgb*.1;c+=texture2D(tex,q-vec2(0.,blur.y)).rgb*.1;
  c+=texture2D(tex,q+blur).rgb*.1;c+=texture2D(tex,q-blur).rgb*.1;c+=texture2D(tex,q+vec2(blur.x,-blur.y)).rgb*.1;c+=texture2D(tex,q+vec2(-blur.x,blur.y)).rgb*.1;
  vec2 cell=fract(gl_FragCoord.xy/4.4)-.5;float pebble=(1.-smoothstep(.12,.49,length(cell)));c+=vec3((pebble-.5)*.075+ribs*.018);c+=vec3((noise(gl_FragCoord.xy)-.5)*.036);c=mix(c,vec3(.88,.9,.94),.045);gl_FragColor=vec4(c,1.);}`;
- let program,buffer,texture,ready=false,active=true,id=0,clock=0,pointer=[0,0],scroll=0,photo=[1,1],generation=0,sourceStop=()=>{};
- try{function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error('Frost shader');return s}program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Frost link');gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const loc=gl.getAttribLocation(program,'a');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);texture=gl.createTexture();}catch{return null}
- const u=Object.fromEntries(['size','photo','pointer','clock','scroll'].map(n=>[n,gl.getUniformLocation(program,n)]));
- function setSource(name){const serial=++generation;sourceStop();sourceStop=progressiveTexture({target:canvas.closest('.glass-surface'),name,src:asset(name+'-sm'),onImage(img){if(!active||serial!==generation)return;gl.bindTexture(gl.TEXTURE_2D,texture);for(const pname of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,pname,gl.LINEAR);for(const pname of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,pname,gl.CLAMP_TO_EDGE);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);photo=[img.width,img.height];ready=true;canvas.classList.add('ready');}});}
- function draw(){if(!active)return;const rect=canvas.getBoundingClientRect();if(ready&&!document.hidden&&rect.bottom>0&&rect.top<innerHeight&&!canvas.closest('.is-clear')){const w=Math.round(rect.width*Math.min(devicePixelRatio,1.25)),h=Math.round(rect.height*Math.min(devicePixelRatio,1.25));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}clock+=.016;gl.uniform2f(u.size,w,h);gl.uniform2f(u.photo,...photo);gl.uniform2f(u.pointer,...pointer);gl.uniform1f(u.clock,clock);gl.uniform1f(u.scroll,scroll);gl.drawArrays(gl.TRIANGLES,0,6)}id=requestAnimationFrame(draw)}setSource(name);draw();
- return{setSource,setPointer(x,y,s){pointer=[x,y];scroll=s},destroy(){active=false;++generation;sourceStop();cancelAnimationFrame(id);gl.deleteTexture(texture);gl.deleteBuffer(buffer);gl.deleteProgram(program);gl.getExtension('WEBGL_lose_context')?.loseContext()}};
+  let program,
+    buffer,
+    texture,
+    ready = false,
+    active = true,
+    id = 0,
+    clock = 0,
+    pointer = [0, 0],
+    scroll = 0,
+    photo = [1, 1],
+    generation = 0,
+    sourceStop = () => {};
+  try {
+    function shader(type, src) {
+      let s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw Error('Frost shader');
+      return s;
+    }
+    program = gl.createProgram();
+    gl.attachShader(program, shader(gl.VERTEX_SHADER, vs));
+    gl.attachShader(program, shader(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw Error('Frost link');
+    gl.useProgram(program);
+    buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW,
+    );
+    const loc = gl.getAttribLocation(program, 'a');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    texture = gl.createTexture();
+  } catch {
+    return null;
+  }
+  const u = Object.fromEntries(
+    ['size', 'photo', 'pointer', 'clock', 'scroll'].map((n) => [
+      n,
+      gl.getUniformLocation(program, n),
+    ]),
+  );
+  function setSource(name) {
+    const serial = ++generation;
+    sourceStop();
+    sourceStop = progressiveTexture({
+      target: canvas.closest('.glass-surface'),
+      name,
+      src: asset(name + '-sm'),
+      onImage(img) {
+        if (!active || serial !== generation) return;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        for (const pname of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER])
+          gl.texParameteri(gl.TEXTURE_2D, pname, gl.LINEAR);
+        for (const pname of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T])
+          gl.texParameteri(gl.TEXTURE_2D, pname, gl.CLAMP_TO_EDGE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        photo = [img.width, img.height];
+        ready = true;
+        canvas.classList.add('ready');
+      },
+    });
+  }
+  function draw() {
+    if (!active) return;
+    const rect = canvas.getBoundingClientRect();
+    if (
+      ready &&
+      !document.hidden &&
+      rect.bottom > 0 &&
+      rect.top < innerHeight &&
+      !canvas.closest('.is-clear')
+    ) {
+      const w = Math.round(rect.width * Math.min(devicePixelRatio, 1.25)),
+        h = Math.round(rect.height * Math.min(devicePixelRatio, 1.25));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
+      clock += 0.016;
+      gl.uniform2f(u.size, w, h);
+      gl.uniform2f(u.photo, ...photo);
+      gl.uniform2f(u.pointer, ...pointer);
+      gl.uniform1f(u.clock, clock);
+      gl.uniform1f(u.scroll, scroll);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    id = requestAnimationFrame(draw);
+  }
+  setSource(name);
+  draw();
+  return {
+    setSource,
+    setPointer(x, y, s) {
+      pointer = [x, y];
+      scroll = s;
+    },
+    destroy() {
+      active = false;
+      ++generation;
+      sourceStop();
+      cancelAnimationFrame(id);
+      gl.deleteTexture(texture);
+      gl.deleteBuffer(buffer);
+      gl.deleteProgram(program);
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+    },
+  };
 }
 
-let lightboxReturn=null,lightboxImages=[],lightboxIndex=0;
-function openLightbox(name){lightboxImages=[...new Set($$('[data-lightbox]').filter(x=>x.getClientRects().length).map(x=>x.dataset.lightbox))];lightboxIndex=lightboxImages.indexOf(name);lightboxReturn=document.activeElement;const d=$('#lightbox');d.innerHTML=`<button class="lightbox-close text-button" aria-label="${t.close}">${icon('close')}</button><button class="lightbox-prev" aria-label="${t.prev}">${icon('arrow-left')}</button><img alt="" draggable="false"><button class="lightbox-next" aria-label="${t.nextImage}">${icon('arrow-right')}</button><span class="lightbox-counter micro"></span>`;updateLightbox();d.showModal();document.body.classList.add('lightbox-open');$('.lightbox-close',d).onclick=closeLightbox;$('.lightbox-prev',d).onclick=()=>changeImage(-1);$('.lightbox-next',d).onclick=()=>changeImage(1);d.onclick=e=>{if(e.target===d)closeLightbox()};d.onkeydown=e=>{if(e.key==='ArrowRight')changeImage(1);if(e.key==='ArrowLeft')changeImage(-1)};d.onclose=()=>{document.body.classList.remove('lightbox-open');lightboxReturn?.focus()};}
-function updateLightbox(){let d=$('#lightbox'),im=$('img',d);setProgressiveImage(im,{name:lightboxImages[lightboxIndex],src:asset(lightboxImages[lightboxIndex]),priority:'high'});im.alt=`MINJA — ${lightboxImages[lightboxIndex].replaceAll('-',' ')}`;const dimensions=media[lightboxImages[lightboxIndex]];im.width=dimensions.width;im.height=dimensions.height;im.style.setProperty('--image-ratio',dimensions.width/dimensions.height);$('.lightbox-counter',d).textContent=`${String(lightboxIndex+1).padStart(2,'0')} / ${String(lightboxImages.length).padStart(2,'0')}`;}
-function changeImage(n){lightboxIndex=(lightboxIndex+n+lightboxImages.length)%lightboxImages.length;updateLightbox();}function closeLightbox(){$('#lightbox')?.close();}
-async function navigate(href,source=null){
- if(navigating)return;navigating=true;
- const u=new URL(href,location);if(lang!=='en')u.searchParams.set('lang',lang);
- const curtain=$('#curtain');let destination=null;
- const update=()=>{history.replaceState({...history.state,minjaScroll:scrollY},'',location.href);history.pushState({},'',u);render();scrollTo({top:0,behavior:'instant'});$('#main').setAttribute('tabindex','-1');$('#main').focus({preventScroll:true})};
- try{
-  if(motion&&source&&typeof document.startViewTransition==='function'){
-   source.classList.add('is-opening');source.style.viewTransitionName='project-cover';document.documentElement.classList.add('archive-to-project');
-   const transition=document.startViewTransition(()=>{update();destination=$('.detail-cover');if(destination)destination.style.viewTransitionName='project-cover'});
-   await transition.finished.catch(()=>{});
-  }else{
-   if(motion)await curtain.animate([{transform:'translateY(100%)'},{transform:'translateY(0)'}],{duration:420,easing:'cubic-bezier(.77,0,.18,1)',fill:'forwards'}).finished;
-   update();
-   if(motion)await curtain.animate([{transform:'translateY(0)'},{transform:'translateY(-100%)'}],{duration:550,easing:'cubic-bezier(.77,0,.18,1)',fill:'forwards'}).finished;
-  }
- }finally{if(destination)destination.style.viewTransitionName='';source?.style.removeProperty('view-transition-name');document.documentElement.classList.remove('archive-to-project');curtain.style.transform='translateY(100%)';curtain.getAnimations().forEach(a=>a.cancel());navigating=false;}
+let lightboxReturn = null,
+  lightboxImages = [],
+  lightboxIndex = 0;
+function openLightbox(name) {
+  lightboxImages = [
+    ...new Set(
+      $$('[data-lightbox]')
+        .filter((x) => x.getClientRects().length)
+        .map((x) => x.dataset.lightbox),
+    ),
+  ];
+  lightboxIndex = lightboxImages.indexOf(name);
+  lightboxReturn = document.activeElement;
+  const d = $('#lightbox');
+  d.innerHTML = `<button class="lightbox-close text-button" aria-label="${t.close}">${icon('close')}</button><button class="lightbox-prev" aria-label="${t.prev}">${icon('arrow-left')}</button><img alt="" draggable="false"><button class="lightbox-next" aria-label="${t.nextImage}">${icon('arrow-right')}</button><span class="lightbox-counter micro"></span>`;
+  updateLightbox();
+  d.showModal();
+  document.body.classList.add('lightbox-open');
+  $('.lightbox-close', d).onclick = closeLightbox;
+  $('.lightbox-prev', d).onclick = () => changeImage(-1);
+  $('.lightbox-next', d).onclick = () => changeImage(1);
+  d.onclick = (e) => {
+    if (e.target === d) closeLightbox();
+  };
+  d.onkeydown = (e) => {
+    if (e.key === 'ArrowRight') changeImage(1);
+    if (e.key === 'ArrowLeft') changeImage(-1);
+  };
+  d.onclose = () => {
+    document.body.classList.remove('lightbox-open');
+    lightboxReturn?.focus();
+  };
 }
-document.addEventListener('click',e=>{const link=e.target.closest('a[data-nav]');if(!link||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0)return;e.preventDefault();navigate(link.href,link.closest('.archive .work-card')?.querySelector('.work-image'))});
+function updateLightbox() {
+  let d = $('#lightbox'),
+    im = $('img', d);
+  setProgressiveImage(im, {
+    name: lightboxImages[lightboxIndex],
+    src: asset(lightboxImages[lightboxIndex]),
+    priority: 'high',
+  });
+  im.alt = `MINJA — ${lightboxImages[lightboxIndex].replaceAll('-', ' ')}`;
+  const dimensions = media[lightboxImages[lightboxIndex]];
+  im.width = dimensions.width;
+  im.height = dimensions.height;
+  im.style.setProperty('--image-ratio', dimensions.width / dimensions.height);
+  $('.lightbox-counter', d).textContent =
+    `${String(lightboxIndex + 1).padStart(2, '0')} / ${String(lightboxImages.length).padStart(2, '0')}`;
+}
+function changeImage(n) {
+  lightboxIndex = (lightboxIndex + n + lightboxImages.length) % lightboxImages.length;
+  updateLightbox();
+}
+function closeLightbox() {
+  $('#lightbox')?.close();
+}
+async function navigate(href, source = null) {
+  if (navigating) return;
+  navigating = true;
+  const u = new URL(href, location);
+  if (lang !== 'en') u.searchParams.set('lang', lang);
+  const curtain = $('#curtain');
+  let destination = null;
+  const update = () => {
+    history.replaceState({ ...history.state, minjaScroll: scrollY }, '', location.href);
+    history.pushState({}, '', u);
+    render();
+    scrollTo({ top: 0, behavior: 'instant' });
+    $('#main').setAttribute('tabindex', '-1');
+    $('#main').focus({ preventScroll: true });
+  };
+  try {
+    if (motion && source && typeof document.startViewTransition === 'function') {
+      source.classList.add('is-opening');
+      source.style.viewTransitionName = 'project-cover';
+      document.documentElement.classList.add('archive-to-project');
+      const transition = document.startViewTransition(() => {
+        update();
+        destination = $('.detail-cover');
+        if (destination) destination.style.viewTransitionName = 'project-cover';
+      });
+      await transition.finished.catch(() => {});
+    } else {
+      if (motion)
+        await curtain.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], {
+          duration: 420,
+          easing: 'cubic-bezier(.77,0,.18,1)',
+          fill: 'forwards',
+        }).finished;
+      update();
+      if (motion)
+        await curtain.animate(
+          [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
+          { duration: 550, easing: 'cubic-bezier(.77,0,.18,1)', fill: 'forwards' },
+        ).finished;
+    }
+  } finally {
+    if (destination) destination.style.viewTransitionName = '';
+    source?.style.removeProperty('view-transition-name');
+    document.documentElement.classList.remove('archive-to-project');
+    curtain.style.transform = 'translateY(100%)';
+    curtain.getAnimations().forEach((a) => a.cancel());
+    navigating = false;
+  }
+}
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a[data-nav]');
+  if (!link || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+  e.preventDefault();
+  navigate(link.href, link.closest('.archive .work-card')?.querySelector('.work-image'));
+});
 initProtection();
 initImages();
-history.scrollRestoration='manual';
-window.addEventListener('popstate',event=>{render();requestAnimationFrame(()=>scrollTo({top:event.state?.minjaScroll||0,behavior:'instant'}))});
+history.scrollRestoration = 'manual';
+window.addEventListener('popstate', (event) => {
+  render();
+  requestAnimationFrame(() =>
+    scrollTo({ top: event.state?.minjaScroll || 0, behavior: 'instant' }),
+  );
+});
 render();
-if(location.hash) (document.fonts?.ready||Promise.resolve()).then(()=>requestAnimationFrame(()=>{const target=document.getElementById(location.hash.slice(1));(target?.closest('.story-track')||target)?.scrollIntoView({block:'start',behavior:'instant'});}));
+if (location.hash)
+  (document.fonts?.ready || Promise.resolve()).then(() =>
+    requestAnimationFrame(() => {
+      const target = document.getElementById(location.hash.slice(1));
+      (target?.closest('.story-track') || target)?.scrollIntoView({
+        block: 'start',
+        behavior: 'instant',
+      });
+    }),
+  );

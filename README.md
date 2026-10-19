@@ -30,7 +30,7 @@ No dependencies or build step are required.
 python3 -m http.server 4173
 ```
 
-Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
+Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks. Run `npm run format` to apply the shared Prettier style to the JavaScript and CSS (`.prettierrc.json`); the generated `media.js` and `previews.js` manifests are left as written.
 
 ## Edit
 

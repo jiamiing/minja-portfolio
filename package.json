@@ -5,7 +5,8 @@
   "description": "MINJA — visual direction, music visuals and generative film",
   "scripts": {
     "dev": "python3 -m http.server 4173",
-    "check": "node --check app.js && node --check content.js && node --check media.js && node --check story.js && node --check inquiry.js && node --check contact-config.js && node --check logo-geometry.js && node --check identity.js && node --check motion.js && node --check archive.js && node --check icons.js && node --check hero-optics.js && node --check panorama.js && node --check images.js && node --check protection.js && node --check previews.js && node --check signature.js"
+    "check": "node --check app.js && node --check content.js && node --check media.js && node --check story.js && node --check inquiry.js && node --check contact-config.js && node --check logo-geometry.js && node --check identity.js && node --check motion.js && node --check archive.js && node --check icons.js && node --check hero-optics.js && node --check panorama.js && node --check images.js && node --check protection.js && node --check previews.js && node --check signature.js",
+    "format": "npx prettier@3.3.3 --write '*.js' '*.css'"
   },
   "type": "module"
 }
