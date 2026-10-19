@@ -106,19 +106,18 @@ export function initLetterFields({ motion, on, targets }) {
       const rect = f.root.getBoundingClientRect(),
         radius = clamp(innerWidth * 0.11, 80, 170),
         scale = rect.width / (f.width || rect.width);
-      let distortion = 0;
       for (const g of f.glyphs) {
         const dx = rect.left + g.tx * scale - px,
           dy = rect.top + g.ty * scale - py,
           d = Math.hypot(dx, dy) || 1,
           force = pointer ? Math.max(0, 1 - d / radius) : 0;
-        distortion = Math.max(distortion, force);
         const targetX = (dx / d) * force * 22,
           targetY = (dy / d) * force * 20;
-        g.vx += (targetX - g.x) * 0.09 * dt;
-        g.vy += (targetY - g.y) * 0.09 * dt;
-        g.vx *= Math.pow(0.72, dt);
-        g.vy *= Math.pow(0.72, dt);
+        // A stiff spring keeps glyphs on the pointer within a few frames, with a short settle.
+        g.vx += (targetX - g.x) * 0.24 * dt;
+        g.vy += (targetY - g.y) * 0.24 * dt;
+        g.vx *= Math.pow(0.6, dt);
+        g.vy *= Math.pow(0.6, dt);
         g.x += g.vx * dt;
         g.y += g.vy * dt;
         if (force > 0.001 || Math.abs(g.x) + Math.abs(g.y) > 0.04) {
@@ -133,10 +132,6 @@ export function initLetterFields({ motion, on, targets }) {
           g.el.style.textShadow = 'none';
         }
       }
-      if (f.root.classList.contains('opening-type'))
-        document
-          .querySelector('#ink-warp-scale')
-          ?.setAttribute('scale', (distortion * 9).toFixed(2));
     }
     if (moving) schedule();
   }
@@ -456,10 +451,11 @@ export function initPageMotion({ motion, on }) {
           s.ready = true;
           s.el.querySelectorAll('img[loading=lazy]').forEach((im) => (im.loading = 'eager'));
         }
-        s.p = s.p === null ? target : mix(s.p, target, 0.14);
-        if (Math.abs(s.p - target) > 0.0002) settling = true;
-        else s.p = target;
-        paint(s, s.p);
+        // Follow the scroll position exactly; the smooth scroller already eases it.
+        if (s.p !== target) {
+          s.p = target;
+          paint(s, target);
+        }
       }
       reading.forEach((p) => {
         const r = p.getBoundingClientRect();

@@ -1089,41 +1089,6 @@ footer {
   z-index: 150;
   pointer-events: none;
 }
-#cursor {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 9px;
-  height: 9px;
-  margin-left: -4.5px;
-  margin-top: -4.5px;
-  background: var(--acid);
-  border: 1px solid #18191833;
-  border-radius: 50%;
-  z-index: 200;
-  pointer-events: none;
-  transition:
-    width 0.35s,
-    height 0.35s,
-    margin 0.35s,
-    opacity 0.3s;
-  display: grid;
-  place-items: center;
-  color: var(--ink);
-  font-size: 10px;
-  text-align: center;
-  line-height: 1.4;
-}
-#cursor.large {
-  width: 85px;
-  height: 85px;
-  margin-left: -42.5px;
-  margin-top: -42.5px;
-  padding: 12px;
-}
-#cursor.out {
-  opacity: 0;
-}
 #curtain {
   position: fixed;
   inset: 0;
@@ -1207,9 +1172,6 @@ footer {
 .motion-off .hero-image,
 .motion-off .practice-image img {
   transform: none !important;
-}
-.motion-off #cursor {
-  display: none;
 }
 @keyframes spin {
   to {
@@ -1762,9 +1724,6 @@ footer {
   .nav-overlay > .micro {
     font-size: 8px;
   }
-  #cursor {
-    display: none !important;
-  }
   #lightbox {
     padding: 70px 12px;
   }
@@ -1802,9 +1761,6 @@ footer {
   }
 }
 @media (pointer: coarse) {
-  #cursor {
-    display: none !important;
-  }
   .card-arrow {
     transform: none;
   }

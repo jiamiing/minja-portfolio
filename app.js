@@ -1,14 +1,15 @@
 import { signatureMarkup, initSignature } from './signature.js?v=2.6.0';
-import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.0.1';
+import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.1.0';
 import { initProtection } from './protection.js?v=2.0.0';
-import { initPanorama } from './panorama.js?v=2.1.0';
+import { initPanorama } from './panorama.js?v=2.1.1';
 import { initHeroOptics } from './hero-optics.js?v=2.2.0';
 import { icon } from './icons.js?v=1.6.1';
 import { logoSvg } from './logo-geometry.js?v=1.3.1';
 import { initArchive } from './archive.js?v=1.6.0';
-import { initIdentity } from './identity.js?v=2.0.1';
-import { initLetterFields, initNavigation, initPageMotion } from './motion.js?v=1.7.0';
-import { initStory } from './story.js?v=1.5.0';
+import { initIdentity } from './identity.js?v=2.1.0';
+import { initLetterFields, initNavigation, initPageMotion } from './motion.js?v=1.8.0';
+import { initStory } from './story.js?v=1.6.0';
+import { initSmoothScroll } from './smooth-scroll.js?v=1.0.0';
 import { initInquiry } from './inquiry.js?v=1.2.0';
 import { formConfig } from './contact-config.js?v=2.5.2';
 import { copy, languages, projects, contact, atlas } from './content.js?v=1.9.0';
@@ -144,7 +145,7 @@ function home() {
        `<a href="#${id}" data-chapter="${id}" aria-label="${label}"><span>0${i + 1}</span><b>${label}</b><i></i></a>`,
    )
    .join('')}</nav>
- <section class="story-track opening-track" id="opening" data-scene="opening"><div class="story-pin opening-pin"><svg class="motion-defs" aria-hidden="true" focusable="false"><defs><filter id="hero-ink-warp" x="-15%" y="-20%" width="130%" height="140%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".012 .021" numOctaves="2" seed="7" result="ink-noise"/><feDisplacementMap id="ink-warp-scale" in="SourceGraphic" in2="ink-noise" scale="0" xChannelSelector="R" yChannelSelector="G"/></filter></defs></svg>
+ <section class="story-track opening-track" id="opening" data-scene="opening"><div class="story-pin opening-pin">
  <div class="opening-micro micro"><span>MINJA / ${t.portfolio}</span><span>${t.director}</span></div>
  <div class="hero-art opening-art"><a href="${url('work/')}" data-nav class="hero-image-link" aria-label="${t.explore}">${image('hero', t.heroSub, 'hero-image', true)}<canvas class="hero-canvas" aria-hidden="true"></canvas></a><div class="hero-shade"></div></div>
  <div class="opening-type"><span class="micro">${t.source}</span><h1>${t.hero}</h1><div class="opening-bottom"><p>${t.heroSub}</p>${a('work/', `${t.explore} ${arrow}`, 'underlined')}</div></div>
@@ -375,7 +376,8 @@ function init() {
     }),
   );
   const glassStops = $$('.glass-surface').map((stage) => initGlassSurface(stage, on));
-  const storyStop = initStory({ motion, on }),
+  const smoothStop = initSmoothScroll({ motion, on }),
+    storyStop = initStory({ motion, on }),
     inquiryStop = initInquiry({ formConfig, labels: t, on, signal });
   const archiveStop = initArchive({ motion, on }),
     panoramaStop = initPanorama({ motion, on });
@@ -431,52 +433,24 @@ function init() {
       setTimeout(() => delete g.dataset.dragged, 50);
     });
   });
-  const cursor = $('#cursor');
-  if (cursor) {
-    cursor.hidden = !motion;
-    // Stay hidden until the pointer first moves, instead of waiting in the middle of the page.
-    cursor.classList.add('out');
-  }
-  let mx = innerWidth / 2,
-    my = innerHeight / 2,
-    cx = mx,
-    cy = my,
-    targetX = 0,
+  let targetX = 0,
     targetY = 0,
     hx = 0,
-    hy = 0,
-    cursorSeen = false;
+    hy = 0;
   const hero = $('.hero-art');
   on(window, 'pointermove', (e) => {
-    mx = e.clientX;
-    my = e.clientY;
-    const target = e.target.closest('[data-cursor]'),
-      label = target?.dataset.cursor || '';
-    if (cursor) {
-      if (e.pointerType === 'mouse' && !cursorSeen) {
-        cursorSeen = true;
-        cx = mx;
-        cy = my;
-        cursor.classList.remove('out');
-      }
-      cursor.classList.toggle('large', !!target);
-      if (cursor.textContent !== label) cursor.textContent = label;
-    }
     if (hero) {
       const r = hero.getBoundingClientRect();
       targetX = (e.clientX - r.left) / r.width - 0.5;
       targetY = (e.clientY - r.top) / r.height - 0.5;
     }
   });
-  on(document, 'pointerleave', () => cursor?.classList.add('out'));
-  on(document, 'pointerenter', () => cursor?.classList.remove('out'));
   const sticky = $('.practice'),
     practiceImg = $('.practice-image img'),
     heroImg = $('.hero-image');
   let progress = $('#scroll-progress');
   // Write styles only when a value changes; idle frames should cost nothing.
-  let lastCursor = '',
-    lastHero = '',
+  let lastHero = '',
     lastPractice = '',
     lastProgress = '',
     scrollRange = 0;
@@ -492,13 +466,7 @@ function init() {
     const dt = Math.min(0.05, (now - lastTick) / 1000 || 1 / 60);
     lastTick = now;
     if (motion) {
-      const follow = 1 - Math.exp(-dt * 30),
-        drift = 1 - Math.exp(-dt * 7);
-      cx += (mx - cx) * follow;
-      cy += (my - cy) * follow;
-      const cursorTransform = `translate3d(${cx.toFixed(1)}px,${cy.toFixed(1)}px,0)`;
-      if (cursor && cursorTransform !== lastCursor)
-        cursor.style.transform = lastCursor = cursorTransform;
+      const drift = 1 - Math.exp(-dt * 12);
       hx += (targetX - hx) * drift;
       hy += (targetY - hy) * drift;
       if (heroImg) {
@@ -544,6 +512,7 @@ function init() {
     glStop();
     panoramaStop();
     storyStop();
+    smoothStop();
     inquiryStop();
     archiveStop();
     identityStop();
@@ -553,7 +522,6 @@ function init() {
     lettersStop();
     glassStops.forEach((stop) => stop());
     document.body.classList.remove('menu-open');
-    if (cursor) cursor.classList.remove('large');
   };
 }
 // A subtle real-time liquid refraction, rendered from the original portfolio artwork.

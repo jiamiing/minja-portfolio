@@ -1791,12 +1791,6 @@ main:not(.page-motion) .ledger-dots {
   overflow: hidden;
   pointer-events: none;
 }
-.story-motion .opening-type {
-  filter: url(#hero-ink-warp);
-}
-.motion-off .opening-type {
-  filter: none;
-}
 .opening-scroll span {
   animation: none;
 }

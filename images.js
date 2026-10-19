@@ -19,12 +19,9 @@ export function decodeImage(src, { srcset = '', sizes = '', priority = 'auto' } 
     image.decoding = 'async';
     image.fetchPriority = priority;
     image.onload = async () => {
-      try {
-        await image.decode();
-        resolve(image);
-      } catch (error) {
-        reject(error);
-      }
+      // decode() only pre-warms; it can reject for a loaded, usable image (e.g. a background page).
+      await image.decode().catch(() => {});
+      resolve(image);
     };
     image.onerror = () => reject(new Error('Image could not load'));
     if (sizes) image.sizes = sizes;
@@ -105,22 +102,9 @@ export function initImages() {
             image.sizes = state.sizes;
             if (state.srcset) image.srcset = state.srcset;
             image.src = state.src;
-            await image.decode();
+            await image.decode().catch(() => {});
             if (!valid()) return;
             image.dataset.imageState = 'ready';
-            if (
-              !matchMedia('(prefers-reduced-motion: reduce)').matches &&
-              !document.documentElement.classList.contains('motion-off')
-            ) {
-              const filter = getComputedStyle(image).filter;
-              image.animate(
-                [
-                  { filter: (filter === 'none' ? '' : filter + ' ') + 'blur(2.5px)' },
-                  { filter: filter === 'none' ? 'blur(0px)' : filter },
-                ],
-                { duration: 450, easing: 'cubic-bezier(.2,.65,.25,1)' },
-              );
-            }
           } catch {
             if (!valid()) return;
             image.removeAttribute('srcset');

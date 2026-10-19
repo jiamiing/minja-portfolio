@@ -1,4 +1,4 @@
-import { preview, decodeImage, setProgressiveImage } from './images.js?v=2.0.1';
+import { preview, decodeImage, setProgressiveImage } from './images.js?v=2.1.0';
 // A small glass screen made from the portfolio itself. No stock 3D object.
 const vertex = `attribute vec2 position;varying vec2 uv;
 void main(){uv=vec2(position.x*.5+.5,.5-position.y*.5);gl_Position=vec4(position,0.,1.);}`;
@@ -211,7 +211,10 @@ export function initIdentity({ motion, on }) {
         return Promise.all(sources.map((src) => decodeImage(src)));
       })
       .then(upload)
-      .catch(() => {});
+      .catch(() => {
+        // Let the next time the toy scrolls into view try again instead of staying on the fallback.
+        if (!ready) loading = false;
+      });
   }
   function updateCaption() {
     counter.textContent = `0${targetIndex + 1} / 0${sources.length}`;

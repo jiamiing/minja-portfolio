@@ -10,7 +10,7 @@ export function initStory({ motion, on }) {
   let frame = 0,
     alive = true,
     dirty = true,
-    settling = true,
+    current = '',
     viewportHeight = innerHeight,
     viewportWidth = innerWidth;
   const states = tracks.map((el) => ({ el, type: el.dataset.scene, p: null }));
@@ -18,22 +18,34 @@ export function initStory({ motion, on }) {
     ...document.querySelectorAll(
       '.project-cover,.expanded-gallery .gallery-frame,.collab-banner,.note-photo',
     ),
-  ];
-  on(
-    window,
-    'resize',
-    () => {
-      viewportHeight = innerHeight;
-      viewportWidth = innerWidth;
-      dirty = true;
-    },
-    { passive: true },
-  );
+  ].map((el) => ({ el, img: el.querySelector('img') }));
+  const chapterLinks = [...document.querySelectorAll('[data-chapter]')];
+  // Geometry is measured once per layout change, so scrolled frames never read layout.
+  function measure() {
+    const y = scrollY;
+    viewportHeight = innerHeight;
+    viewportWidth = innerWidth;
+    for (const state of states) {
+      state.top = state.el.getBoundingClientRect().top + y;
+      state.height = state.el.offsetHeight;
+    }
+    for (const item of parallax) {
+      const r = item.el.getBoundingClientRect();
+      item.top = r.top + y;
+      item.height = r.height;
+    }
+    dirty = true;
+  }
+  const layout = new ResizeObserver(measure);
+  layout.observe(document.body);
+  on(window, 'resize', measure, { passive: true });
+  measure();
   on(window, 'scroll', () => (dirty = true), { passive: true });
   if (!motion) {
     document
       .querySelectorAll('.world-scene,.rail-card,[data-collage]')
       .forEach((el) => (el.inert = false));
+    layout.disconnect();
     return () => body.classList.remove('story-motion');
   }
   // Scroll handlers run every frame; skip text writes that would not change anything.
@@ -45,7 +57,6 @@ export function initStory({ motion, on }) {
   }
   function paint(state, p) {
     const el = state.el;
-    el.dataset.progress = p.toFixed(3);
     if (state.type === 'opening') {
       const fill = ease(range(p, 0.05, 0.55)),
         exit = ease(range(p, 0.58, 1));
@@ -213,54 +224,49 @@ export function initStory({ motion, on }) {
   }
   function tick() {
     if (!alive) return;
-    if (!document.hidden && (dirty || settling)) {
+    if (!document.hidden && dirty) {
       dirty = false;
-      settling = false;
+      const y = scrollY;
       let active = 'opening';
       for (const state of states) {
-        const rect = state.el.getBoundingClientRect(),
-          distance = state.el.offsetHeight - viewportHeight;
-        const target = clamp(-rect.top / Math.max(1, distance));
-        if (!state.ready && rect.top < viewportHeight * 2 && rect.bottom > 0) {
+        const top = state.top - y,
+          bottom = top + state.height,
+          target = clamp(-top / Math.max(1, state.height - viewportHeight));
+        if (!state.ready && top < viewportHeight * 2 && bottom > 0) {
           state.ready = true;
           state.el.querySelectorAll('img[loading=lazy]').forEach((im) => (im.loading = 'eager'));
         }
-        if (rect.top < viewportHeight * 0.5 && rect.bottom > viewportHeight * 0.4)
+        if (top < viewportHeight * 0.5 && bottom > viewportHeight * 0.4)
           active = state.type === 'glass' ? 'glass' : state.el.id || active;
-        if (rect.bottom < -viewportHeight || rect.top > viewportHeight * 2) {
-          if (state.p !== target) {
-            state.p = target;
-            paint(state, target);
-          }
-          continue;
+        // Scenes follow the scroll position exactly; the scroll itself carries the easing.
+        if (state.p !== target) {
+          state.p = target;
+          paint(state, target);
         }
-        state.p = state.p === null ? target : mix(state.p, target, 0.17);
-        if (Math.abs(state.p - target) < 0.0002) state.p = target;
-        else settling = true;
-        paint(state, state.p);
       }
-      document
-        .querySelectorAll('[data-chapter]')
-        .forEach((a) => a.classList.toggle('current', a.dataset.chapter === active));
-      parallax.forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > viewportHeight) return;
-        const q = clamp((viewportHeight - r.top) / (viewportHeight + r.height));
-        const im = el.querySelector('img');
-        if (im) {
-          im.style.transform = `scale(${mix(1.13, 1.02, q)}) translateY(${mix(-3, 3, q)}%)`;
-          im.style.willChange = 'transform';
+      if (active !== current) {
+        current = active;
+        chapterLinks.forEach((a) => a.classList.toggle('current', a.dataset.chapter === active));
+      }
+      for (const { el, img, top, height } of parallax) {
+        const t = top - y;
+        if (t + height < 0 || t > viewportHeight) continue;
+        const q = clamp((viewportHeight - t) / (viewportHeight + height));
+        if (img) {
+          img.style.transform = `scale(${mix(1.13, 1.02, q).toFixed(4)}) translateY(${mix(-3, 3, q).toFixed(3)}%)`;
+          img.style.willChange = 'transform';
         }
         if (el.classList.contains('gallery-frame')) {
-          el.style.clipPath = `inset(${mix(10, 0, ease(range(q, 0, 0.3)))}% 0 0 0)`;
+          el.style.clipPath = `inset(${mix(10, 0, ease(range(q, 0, 0.3))).toFixed(3)}% 0 0 0)`;
         }
-      });
+      }
     }
     frame = requestAnimationFrame(tick);
   }
   if (states.length || parallax.length) tick();
   return () => {
     alive = false;
+    layout.disconnect();
     cancelAnimationFrame(frame);
     body.classList.remove('story-motion');
   };
