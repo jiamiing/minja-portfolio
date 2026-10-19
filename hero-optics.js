@@ -1,4 +1,5 @@
 // Pointer-responsive image field for the hero artwork.
+import { isLite } from './perf.js?v=1.0.0';
 const vertex = `attribute vec2 position;varying vec2 uv;void main(){uv=vec2(position.x*.5+.5,.5-position.y*.5);gl_Position=vec4(position,0.,1.);}`;
 const fragment = `precision highp float;
 varying vec2 uv;uniform sampler2D artwork,previousArtwork;uniform float clarity;uniform vec2 resolution,photo,mouse;
@@ -152,7 +153,7 @@ export function initHeroOptics({ canvas, img, motion, on }) {
     last = now;
     clock += dt;
     clarity = Math.min(1, clarity + dt * 1.8);
-    const d = Math.min(devicePixelRatio || 1, 1.25);
+    const d = isLite() ? 0.7 : Math.min(devicePixelRatio || 1, 1.25);
     const width = Math.round(canvas.clientWidth * d),
       height = Math.round(canvas.clientHeight * d);
     if (canvas.width !== width || canvas.height !== height) {

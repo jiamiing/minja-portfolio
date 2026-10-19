@@ -2412,3 +2412,26 @@ html:not([lang='en']) .hero-title {
 .orbit {
   align-items: flex-start;
 }
+
+/* Lighter compositing for weak laptops and software rendering (set by perf.js).
+   Backdrop blurs re-filter everything beneath them on every scrolled frame. */
+.perf-lite *,
+.perf-lite *::before,
+.perf-lite *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.perf-lite body[data-page] .site-header,
+.perf-lite body[data-page='home'] .site-header {
+  background: #f2f1ecf7;
+}
+.perf-lite .archive-hero-glass {
+  background: #ffffff24;
+}
+.perf-lite .glass-background img {
+  filter: none;
+  opacity: 0.55;
+}
+.perf-lite .portrait-slice {
+  mix-blend-mode: normal;
+}

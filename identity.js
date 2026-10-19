@@ -1,4 +1,4 @@
-import { preview, decodeImage, setProgressiveImage } from './images.js?v=2.1.0';
+import { preview, decodeImage, setProgressiveImage } from './images.js?v=2.2.0';
 // A small glass screen made from the portfolio itself. No stock 3D object.
 const vertex = `attribute vec2 position;varying vec2 uv;
 void main(){uv=vec2(position.x*.5+.5,.5-position.y*.5);gl_Position=vec4(position,0.,1.);}`;
@@ -416,6 +416,14 @@ export function initIdentity({ motion, on }) {
     { threshold: 0.05 },
   );
   observer.observe(host);
+  // Load textures and compile the shader well before the toy scrolls in, not on arrival.
+  const prewarm = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting) load();
+    },
+    { rootMargin: '150% 0px' },
+  );
+  prewarm.observe(host);
   const resizer = new ResizeObserver(resize);
   resizer.observe(control);
   resize();
@@ -439,6 +447,7 @@ export function initIdentity({ motion, on }) {
     alive = false;
     cancelAnimationFrame(raf);
     observer.disconnect();
+    prewarm.disconnect();
     resizer.disconnect();
     document.body.classList.remove('footer-at-play');
     if (gl) {

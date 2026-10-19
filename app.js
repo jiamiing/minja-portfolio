@@ -1,15 +1,16 @@
 import { signatureMarkup, initSignature } from './signature.js?v=2.6.0';
-import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.1.0';
+import { preview, initImages, setProgressiveImage, progressiveTexture } from './images.js?v=2.2.0';
 import { initProtection } from './protection.js?v=2.0.0';
-import { initPanorama } from './panorama.js?v=2.1.1';
-import { initHeroOptics } from './hero-optics.js?v=2.2.0';
+import { initPanorama } from './panorama.js?v=2.2.0';
+import { initHeroOptics } from './hero-optics.js?v=2.3.0';
 import { icon } from './icons.js?v=1.6.1';
 import { logoSvg } from './logo-geometry.js?v=1.3.1';
 import { initArchive } from './archive.js?v=1.6.0';
-import { initIdentity } from './identity.js?v=2.1.0';
+import { initIdentity } from './identity.js?v=2.2.0';
 import { initLetterFields, initNavigation, initPageMotion } from './motion.js?v=1.8.0';
 import { initStory } from './story.js?v=1.6.0';
 import { initSmoothScroll } from './smooth-scroll.js?v=1.0.0';
+import { initPerf, isLite } from './perf.js?v=1.0.0';
 import { initInquiry } from './inquiry.js?v=1.2.0';
 import { formConfig } from './contact-config.js?v=2.5.2';
 import { copy, languages, projects, contact, atlas } from './content.js?v=1.9.0';
@@ -534,7 +535,8 @@ function initGlassSurface(stage, on) {
     tx = 0,
     ty = 0,
     x = 0,
-    y = 0;
+    y = 0,
+    written = '';
   const texture =
     motion && matchMedia('(pointer:fine)').matches
       ? createFrostTexture($('.glass-texture', stage), names[0])
@@ -609,9 +611,14 @@ function initGlassSurface(stage, on) {
         -1,
         Math.min(1, (innerHeight / 2 - r.top - r.height / 2) / innerHeight),
       );
-      stage.style.setProperty('--glass-x', x.toFixed(4));
-      stage.style.setProperty('--glass-y', y.toFixed(4));
-      stage.style.setProperty('--glass-scroll', scroll.toFixed(4));
+      // Custom properties restyle the whole stage, so only write values that changed.
+      const values = [x.toFixed(3), y.toFixed(3), scroll.toFixed(3)];
+      if (values.join() !== written) {
+        written = values.join();
+        stage.style.setProperty('--glass-x', values[0]);
+        stage.style.setProperty('--glass-y', values[1]);
+        stage.style.setProperty('--glass-scroll', values[2]);
+      }
       texture?.setPointer(x, y, scroll);
     }
     raf = requestAnimationFrame(tick);
@@ -709,30 +716,38 @@ function createFrostTexture(canvas, name) {
         photo = [img.width, img.height];
         ready = true;
         canvas.classList.add('ready');
+        // Draw once now, off screen, so the shader compiles before the section scrolls in.
+        paint();
       },
     });
   }
   // The surface is blurred and grained, so it renders at reduced resolution and is upscaled.
-  const density = 0.6;
-  function draw() {
+  let lastPaint = 0;
+  function paint() {
+    const density = isLite() ? 0.35 : 0.6;
+    const w = Math.max(1, Math.round(canvas.clientWidth * density)),
+      h = Math.max(1, Math.round(canvas.clientHeight * density));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+    gl.uniform2f(u.size, w, h);
+    gl.uniform2f(u.photo, ...photo);
+    gl.uniform2f(u.pointer, ...pointer);
+    gl.uniform1f(u.clock, clock);
+    gl.uniform1f(u.scroll, scroll);
+    gl.uniform1f(u.density, density);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+  function draw(now) {
     id = 0;
     if (!active || !visible) return;
-    if (ready && !document.hidden && !canvas.closest('.is-clear')) {
-      const w = Math.round(canvas.clientWidth * density),
-        h = Math.round(canvas.clientHeight * density);
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-        gl.viewport(0, 0, w, h);
-      }
-      clock += 0.016;
-      gl.uniform2f(u.size, w, h);
-      gl.uniform2f(u.photo, ...photo);
-      gl.uniform2f(u.pointer, ...pointer);
-      gl.uniform1f(u.clock, clock);
-      gl.uniform1f(u.scroll, scroll);
-      gl.uniform1f(u.density, density);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    // A slow, blurred ambient surface: 30 fps halves its GPU cost on weak machines.
+    if (ready && !document.hidden && !canvas.closest('.is-clear') && now - lastPaint > 31) {
+      clock += Math.min(0.05, (now - lastPaint) / 1000 || 0.033);
+      lastPaint = now;
+      paint();
     }
     id = requestAnimationFrame(draw);
   }
@@ -872,6 +887,7 @@ document.addEventListener('click', (e) => {
   navigate(link.href, link.closest('.archive .work-card')?.querySelector('.work-image'));
 });
 initProtection();
+initPerf();
 initImages();
 history.scrollRestoration = 'manual';
 window.addEventListener('popstate', (event) => {

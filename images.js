@@ -172,12 +172,16 @@ export function initImages() {
 }
 
 // Textures begin with a recognizable preview, then upgrade when their section is near.
+// GPU uploads block the main thread, so hand images over when the page is idle.
+const whenIdle = (fn) =>
+  window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 1200 }) : setTimeout(fn, 60);
+
 export function progressiveTexture({ target, name, src, onImage }) {
   let alive = true,
     highSeen = false;
   decodeImage(preview(name))
     .then((image) => {
-      if (alive && !highSeen) onImage(image, false);
+      whenIdle(() => alive && !highSeen && onImage(image, false));
     })
     .catch(() => {});
   const observer = new IntersectionObserver(
@@ -186,14 +190,12 @@ export function progressiveTexture({ target, name, src, onImage }) {
       observer.disconnect();
       decodeImage(src)
         .then((image) => {
-          if (alive) {
-            highSeen = true;
-            onImage(image, true);
-          }
+          highSeen = true;
+          whenIdle(() => alive && onImage(image, true));
         })
         .catch(() => {});
     },
-    { rootMargin: '450px' },
+    { rootMargin: '150% 0px' },
   );
   observer.observe(target);
   return () => {

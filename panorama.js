@@ -1,4 +1,5 @@
-import { progressiveTexture } from './images.js?v=2.1.0';
+import { progressiveTexture } from './images.js?v=2.2.0';
+import { isLite } from './perf.js?v=1.0.0';
 const TAU = Math.PI * 2;
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
 const smooth = (x) => {
@@ -124,7 +125,7 @@ export function initPanorama({ motion, on }) {
   }
   function resizeView() {
     const r = pin.getBoundingClientRect(),
-      dpr = Math.min(devicePixelRatio || 1, 1.25);
+      dpr = isLite() ? 0.7 : Math.min(devicePixelRatio || 1, 1.25);
     canvas.width = Math.max(1, Math.round(r.width * dpr));
     canvas.height = Math.max(1, Math.round(r.height * dpr));
     if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
@@ -213,6 +214,7 @@ export function initPanorama({ motion, on }) {
   });
   on(window, 'scroll', wake, { passive: true });
   on(window, 'resize', resizeView, { passive: true });
+  on(window, 'minja:perf-lite', resizeView);
   on(document, 'visibilitychange', () => {
     if (document.hidden) {
       cancelAnimationFrame(raf);
