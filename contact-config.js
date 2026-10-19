@@ -2,5 +2,5 @@
 export const formConfig = {
   provider: 'formsubmit',
   endpoint: 'https://formsubmit.co/ajax/jiamiingzhang@gmail.com',
-  page: 'https://minja.studio/contact/',
+  page: 'https://minja.studio/contact/'
 };

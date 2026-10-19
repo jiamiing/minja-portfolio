@@ -30,7 +30,7 @@ No dependencies or build step are required.
 python3 -m http.server 4173
 ```
 
-Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks. Run `npm run format` to apply the shared Prettier style to the JavaScript and CSS (`.prettierrc.json`); the generated `media.js` and `previews.js` manifests are left as written.
+Visit http://localhost:4173/. Run `npm run check` for JavaScript syntax checks.
 
 ## Edit
 
@@ -56,4 +56,4 @@ Typography uses Google Fonts (Bodoni Moda and DM Sans), with system fallbacks. A
 
 All artwork © MINJA. No artwork reuse license is granted by this repository.
 
-After adding or replacing an artwork, regenerate the WebP previews with `python3 scripts/generate-previews.py` (Pillow required only for asset preparation). Preview files load on demand from `assets/previews/`. Full-size files are capped at 2400 pixels on the long edge and encoded as WebP at quality 82; keep the high-resolution originals outside the repository. Ordinary images use 512-pixel-wide previews, the hero uses 768 pixels and the panorama uses 1024 pixels. Keep artwork dimensions in `media.js` up to date.
+After adding or replacing an artwork, regenerate the WebP previews with `python3 scripts/generate-previews.py` (Pillow required only for asset preparation). Preview files load on demand from `assets/previews/`; the original HD files are preserved. Ordinary images use 512-pixel-wide previews, the hero uses 768 pixels and the panorama uses 1024 pixels. Keep artwork dimensions in `media.js` up to date.
