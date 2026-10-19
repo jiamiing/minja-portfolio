@@ -45,6 +45,10 @@ function splitInk(root) {
     node.replaceWith(fragment);
   }
 }
+// Scroll handlers run every frame; skip text writes that would not change anything.
+function setText(node, text) {
+  if (node.textContent !== text) node.textContent = text;
+}
 export function initLetterFields({ motion, on, targets }) {
   if (!motion) return () => {};
   const roots = targets.filter(Boolean),
@@ -392,7 +396,7 @@ export function initPageMotion({ motion, on }) {
         if (reveal > 0.5) active = i;
       });
       panels.forEach((panel, i) => (panel.inert = i !== active));
-      el.querySelector('.sequence-current').textContent = String(active + 1).padStart(2, '0');
+      setText(el.querySelector('.sequence-current'), String(active + 1).padStart(2, '0'));
       el.querySelector('.sequence-line i').style.transform = `scaleX(${p})`;
     }
     if (s.type === 'ledger') {
@@ -414,7 +418,7 @@ export function initPageMotion({ motion, on }) {
         entry.style.opacity = enter * (1 - exit);
         entry.style.pointerEvents = i === active ? 'auto' : 'none';
       });
-      el.querySelector('.ledger-number').textContent = `0${active + 1}`;
+      setText(el.querySelector('.ledger-number'), `0${active + 1}`);
       el.querySelectorAll('.ledger-dots i').forEach((dot, i) =>
         dot.classList.toggle('active', i === active),
       );

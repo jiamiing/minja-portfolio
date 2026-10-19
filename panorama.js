@@ -54,10 +54,13 @@ export function initPanorama({ motion, on }) {
   }
   function draw() {
     const angle = yaw + offset;
-    fallback.style.backgroundPosition = `calc(50% + ${(-angle / TAU) * pin.clientHeight * 3}px) 50%`;
-    const breath = motion ? 1.025 + Math.sin(elapsed * 0.68) * 0.012 : 1.025;
-    fallback.style.transform = `scale(${breath}) translate(${px * -9}px,${py * -6}px)`;
-    if (!ready || !gl) return;
+    // The CSS fallback only needs to move while the WebGL view is unavailable.
+    if (!ready || !gl) {
+      fallback.style.backgroundPosition = `calc(50% + ${(-angle / TAU) * pin.clientHeight * 3}px) 50%`;
+      const breath = motion ? 1.025 + Math.sin(elapsed * 0.68) * 0.012 : 1.025;
+      fallback.style.transform = `scale(${breath}) translate(${px * -9}px,${py * -6}px)`;
+      return;
+    }
     gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -79,6 +82,19 @@ export function initPanorama({ motion, on }) {
   function tick(now) {
     raf = 0;
     if (!alive || !visible || document.hidden) return;
+    // The ambient water and breath are slow; at rest they render at 30 fps.
+    const settled =
+      speed < 0.01 &&
+      Math.abs(offsetTarget - offset) < 0.001 &&
+      Math.abs(tx - px) + Math.abs(ty - py) < 0.002 &&
+      Math.abs(pressTarget - press) < 0.01 &&
+      Math.abs(hoverTarget - hover) < 0.01 &&
+      rippleAge > 3 &&
+      clarity >= 1;
+    if (settled && now - last < 1000 / 31) {
+      raf = requestAnimationFrame(tick);
+      return;
+    }
     const dt = Math.min((now - last) / 1000 || 0.0167, 0.05);
     last = now;
     elapsed += dt;
@@ -108,7 +124,7 @@ export function initPanorama({ motion, on }) {
   }
   function resizeView() {
     const r = pin.getBoundingClientRect(),
-      dpr = Math.min(devicePixelRatio || 1, innerWidth < 700 ? 1.35 : 1.5);
+      dpr = Math.min(devicePixelRatio || 1, 1.25);
     canvas.width = Math.max(1, Math.round(r.width * dpr));
     canvas.height = Math.max(1, Math.round(r.height * dpr));
     if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
@@ -274,7 +290,7 @@ export function initPanorama({ motion, on }) {
           'attribute vec2 position;varying vec2 uv;void main(){uv=position;gl_Position=vec4(position,0.,1.);}';
         const fragment = `precision highp float;
     varying vec2 uv;uniform sampler2D scene,previousScene;uniform float clarity,yaw,aspect,time,motion,speed,press,hover,rippleAge;uniform vec2 pointer,ripple;
-    vec3 sampleScene(vec2 p){return mix(texture2D(previousScene,p).rgb,texture2D(scene,p).rgb,clarity);}
+    vec3 sampleScene(vec2 p){return clarity>=1.?texture2D(scene,p).rgb:mix(texture2D(previousScene,p).rgb,texture2D(scene,p).rgb,clarity);}
     vec3 garden(vec2 p){float x=fract(p.x)*.9;float v=clamp(p.y,.006,.994);vec3 c=sampleScene(vec2(x,v));if(x<.1)c=mix(sampleScene(vec2(x+.9,v)),c,smoothstep(0.,.1,x));return c;}
     void main(){
      float breath=(.5+.5*sin(time*.68))*motion;
@@ -304,8 +320,9 @@ export function initPanorama({ motion, on }) {
      float breathFocus=(.5+.5*sin(time*.68+.8))*.00065*peripheral;
      float blur=(breathFocus+.0012*speed*(.35+depth)+.0006*press*(1.-nearPointer))*motion;
      vec2 axis=vec2(blur,blur*.65);
-     vec3 color=garden(p)*.4;
-     color+=(garden(p+axis)+garden(p-axis)+garden(p+vec2(-axis.x,axis.y))+garden(p+vec2(axis.x,-axis.y)))*.15;
+     // Below about a pixel the blur is invisible; skip its four extra samples.
+     vec3 color=garden(p);
+     if(blur>.0005)color=color*.4+(garden(p+axis)+garden(p-axis)+garden(p+vec2(-axis.x,axis.y))+garden(p+vec2(axis.x,-axis.y)))*.15;
      float glint=sin(v*52.+time*.9+sin(u*41.-time*.55));
      color+=vec3(.55,.65,.9)*glint*.018*water*motion;
      color*=1.+sin(time*.51)*.012*motion;

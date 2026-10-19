@@ -210,7 +210,7 @@ function createSurface(canvas, images, on) {
   return {
     draw(state, dt) {
       if (!ready || !alive || gl.isContextLost()) return;
-      const d = Math.min(Math.max(devicePixelRatio || 1, 1.5), 2),
+      const d = Math.min(devicePixelRatio || 1, 1.5),
         w = Math.max(1, Math.round(canvas.clientWidth * d)),
         h = Math.max(1, Math.round(canvas.clientHeight * d));
       if (w !== canvas.width || h !== canvas.height) {
