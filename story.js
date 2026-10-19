@@ -19,8 +19,8 @@ export function initStory({motion,on}){
    const fill=ease(range(p,.05,.55)),exit=ease(range(p,.58,1));set(el,'--fill',fill);set(el,'--exit',exit);
    const art=el.querySelector('.opening-art');art.style.clipPath=`inset(${mix(11,0,fill)}% ${mix(5,0,fill)}% ${mix(5,0,fill)}%)`;
    art.style.transform=`scale(${mix(.96,1.04,fill)}) translateY(${-exit*7}vh)`;
-   const type=el.querySelector('.opening-type');type.style.transform=`translate3d(0,${-fill*6-exit*40}vh,0) rotateX(${exit*12}deg)`;type.style.opacity=1-exit;
-   const end=el.querySelector('.opening-exit');end.style.opacity=range(p,.64,.83)*(1-range(p,.9,1));end.style.transform=`translateY(${mix(12,-10,exit)}vh) scale(${mix(.9,1.05,exit)})`;
+   const type=el.querySelector('.opening-type');type.style.transform=`translate3d(0,${-fill*6-exit*40}vh,0) rotateX(${exit*12}deg)`;type.style.opacity=1-range(p,.58,.7);
+   const end=el.querySelector('.opening-exit');end.style.opacity=range(p,.7,.84)*(1-range(p,.9,1));end.style.transform=`translateY(${mix(12,-10,exit)}vh) scale(${mix(.9,1.05,exit)})`;
   }
   if(state.type==='statement'){
    const compact=viewportWidth<700,assemble=ease(range(p,.02,.36)),triptych=ease(range(p,.36,.62)),takeover=ease(range(p,.67,.92));
